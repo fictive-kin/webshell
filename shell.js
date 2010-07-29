@@ -4,6 +4,8 @@ var sys = require('sys'),
     http = require('http'),
     url = require('url'),
     style = require('colored');
+    Script = process.binding('evals').Script,
+    evalcx = Script.runInContext;
 
 var U = {
   inArray: function(value, array) {
@@ -36,13 +38,25 @@ var U = {
   }
 };
 
+var $_ = {
+  printHeaders: false,
+  printResponse: true,
+  raw: null,
+  response: null,
+  status: 0,
+  previousVerb: null,
+  headers: []
+};
+
 function WebShell(stream) {
   for(var f in style) {
     String.prototype[f] = style[f];
   }
   
   oldParseREPLKeyword = repl.REPLServer.prototype.parseREPLKeyword;
-  var web_repl = new repl.REPLServer("webshell> ", stream);
+  web_repl = new repl.REPLServer("webshell> ", stream);
+  var ctx = web_repl.context;
+
   repl.REPLServer.prototype.parseREPLKeyword = this.parseREPLKeyword;
   formatStatus = function(code) {
     if (200 <= code && code < 300) {
@@ -61,22 +75,43 @@ function WebShell(stream) {
   printHeader = function(name, value) {
     sys.puts(normalizeName(name) + ": " + value);
   };
-
+  
+  ctx.$_ = $_;
+  
+  doRedirect = function() {
+    var location = $_.headers.location;
+    if (location) {
+      doHttpReq($_.previousVerb, location);
+    } else {
+      sys.puts("No previous request!".red());
+    }
+  };
+  
   doHttpReq = function(verb, urlStr) {
     var u = url.parse(urlStr);
     var client = http.createClient(80, u.hostname);
     var request = client.request(verb, u.pathname, {'host': u.hostname});
+    $_.previousVerb = verb;
     request.end();
     request.on('response', function (response) {
-      formatStatus(response.statusCode);
-      U.each(response.headers, printHeader);
+      if ($_.printResponse) {
+        formatStatus(response.statusCode);
+      }
+      ctx.$_.status = response.statusCode;
+      
+      if ($_.printHeaders) {
+        U.each(response.headers, printHeader);
+      }
+      ctx.$_.headers = response.headers;
       
       response.setEncoding('utf8');
+      var body = "";
       response.on('data', function (chunk) {
-        console.log('BODY: ' + chunk);
+        body += chunk;
       });
       response.on('end', function() {
         web_repl.displayPrompt();
+        ctx.$_.raw = body;
       });
     });
   };
@@ -84,24 +119,26 @@ function WebShell(stream) {
 
 WebShell.prototype = {
   parseREPLKeyword: function(cmd) {
-    var verbs = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD'];
+    var verbs = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD', 'TRACE', 'CONNECT'];
     if (oldParseREPLKeyword.call(this, cmd)) {
       return true;
     }
     try {
-      var split = cmd.split(' ');
-      if (split.length === 2 && U.inArray(split[0], verbs)) {
-        doHttpReq(split[0], split[1]);
+      if (cmd === "follow!") {
+        doRedirect();
         return true;
+      } else {
+        var split = cmd.split(' ');
+        if (split.length === 2 && U.inArray(split[0], verbs)) {
+          doHttpReq(split[0], split[1]);
+          return true;
+        }
       }
     } catch(e) {
     }
     return false;
   }
 };
-
-exports.WebShell = WebShell;
-
 
 new WebShell();
 

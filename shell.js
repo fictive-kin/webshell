@@ -1,3 +1,12 @@
+/* Usage: node shell.js */
+/* functions as a regular node shell */
+/* issue HTTP commands with: `<VERB> <URL>' */
+/* e.g. GET http://www.google.com/ */
+/* response data will be put into the global variable $_ */
+/* raw response data: $_.raw */
+/* headers: $_.headers */
+/* to follow redirects - use the command `follow!' */
+
 require.paths.unshift(__dirname);
 var sys = require('sys'),
     repl = require('repl'),

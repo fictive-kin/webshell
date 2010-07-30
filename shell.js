@@ -90,10 +90,10 @@ function WebShell(stream) {
   
   doRedirect = function() {
     var location = $_.headers.location;
-    var prevUrl = url.parse($_.previousUrl);
-    var locationUrl = url.parse(location);
     if (location) {
+      var locationUrl = url.parse(location);
       if (!locationUrl.protocol) {
+        var prevUrl = url.parse($_.previousUrl);
         // a relative URL, auto-populate with previous URL's info
         locationUrl.protocol = prevUrl.protocol;
         locationUrl.hostname = prevUrl.hostname;

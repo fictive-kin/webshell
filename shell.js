@@ -70,9 +70,11 @@ function WebShell(stream) {
   web_repl = new repl.REPLServer("webshell> ", stream);
   process.on('exit', function () {
       var history = web_repl.rli.history;
-      fs.writeFileSync(process.env.HOME + '/.webshell_history', JSON.stringify(history.slice(-100)));
+      fs.writeFileSync(process.env.HOME + '/.webshellrc', JSON.stringify({history: history.slice(-100)}));
   });
-  web_repl.rli.history = JSON.parse(fs.readFileSync(process.env.HOME + '/.webshell_history'));
+  try {
+    web_repl.rli.history = JSON.parse(fs.readFileSync(process.env.HOME + '/.webshellrc')).history;
+  } catch (e) {}
   var ctx = web_repl.context;
 
   repl.REPLServer.prototype.parseREPLKeyword = this.parseREPLKeyword;

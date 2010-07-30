@@ -141,6 +141,37 @@ function WebShell(stream) {
   };
   ctx.$_.follow = doRedirect;
 
+  ctx.$_.saveContext = function(name) {
+    var obj = {};
+    U.each(ctx.$_, function(k, v) {
+      if (typeof(v) !== 'function') {
+        obj[k] = v;
+      }
+    });
+
+    var rc = getRC();
+
+    if (!rc.contexts) {
+      rc.contexts = {};
+    }
+    rc.contexts[name] = obj;
+    writeRC(rc);
+    sys.puts("Saved context: " + name);
+  }
+
+  ctx.$_.loadContext = function(name) {
+    var rc = getRC();
+    if (rc.contexts[name]) {
+      U.each(rc.contexts[name], function (k, v) {
+        ctx.$_[k] = v;
+      });
+      sys.puts("Loaded context: " + name);
+    } else {
+      sys.puts(("Could not load context: " + name).red());
+    }
+
+  }
+
   doHttpReq = function(verb, urlStr) {
     var u = url.parse(urlStr);
     var client = http.createClient(80, u.hostname);

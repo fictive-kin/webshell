@@ -93,6 +93,59 @@ function WebShell(stream) {
   });
   web_repl.rli.history = getRC().history;
 
+  // trap tab key:
+  web_repl.stream.on('data', function (chunk) {
+    if (web_repl.rli.cursor != web_repl.rli.line.length) {
+      // cursor is not at the end of the line
+      return true;
+    }
+    if (chunk != String.fromCharCode(9)) {
+      // not the tab key
+      return true;
+    }
+    // tab (trim off the tab character)
+    var line = web_repl.rli.line.substring(0, web_repl.rli.line.length -1);
+    var split = line.split(' ');
+    if (U.inArray(split[0], verbs)) {
+      var matches = [];
+      U.each(web_repl.rli.history, function (cmd) {
+        if (cmd.substring(0, line.length) == line) {
+          if (!U.inArray(cmd, matches)) {
+            matches.push(cmd);
+          }
+        }
+      });
+      if (matches.length > 1) {
+        sys.puts("\r");
+        U.each(matches, function (cmd) {
+          sys.puts(cmd.blue() + "\r");
+        });
+        web_repl.rli.line = line;
+        web_repl.rli.prompt();
+        // hackery:
+        web_repl.rli.output.write(
+          '\x1b[0G\x1b[' + (
+            web_repl.rli._promptLength + line.length
+          ) + 'C'
+        );
+        web_repl.rli.cursor = line.length;
+        return false;
+      } else if (matches.length == 1) {
+        web_repl.rli.line = matches[0];
+        web_repl.rli.prompt();
+        // hackery:
+        web_repl.rli.output.write(
+            '\x1b[0G\x1b[' + (
+              web_repl.rli._promptLength + matches[0].length
+              ) + 'C'
+            );
+        web_repl.rli.cursor = matches[0].length;
+        return false;
+      }
+    }
+    return true;
+  });
+
   var ctx = web_repl.context;
 
   repl.REPLServer.prototype.parseREPLKeyword = this.parseREPLKeyword;

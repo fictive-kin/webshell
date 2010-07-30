@@ -13,6 +13,7 @@ var sys = require('sys'),
     http = require('http'),
     url = require('url'),
     fs = require('fs'),
+    querystring = require('querystring'),
     style = require('colored');
     Script = process.binding('evals').Script,
     evalcx = Script.runInContext;
@@ -56,7 +57,8 @@ var $_ = {
   status: 0,
   previousVerb: null,
   previousUrl: null,
-  headers: []
+  headers: [],
+  requestData: null
 };
 
 var verbs = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD', 'TRACE', 'CONNECT'];
@@ -126,9 +128,23 @@ function WebShell(stream) {
   doHttpReq = function(verb, urlStr) {
     var u = url.parse(urlStr);
     var client = http.createClient(80, u.hostname);
-    var request = client.request(verb, u.pathname, {'host': u.hostname});
+    var jsonHeaders = ['application/json', 'text/x-json'];
     $_.previousVerb = verb;
     $_.previousUrl = urlStr;
+
+    var content = null;
+    var headers = {host: u.hostname};
+    switch (verb) {
+      case 'POST':
+        content = querystring.stringify($_.requestData);
+        headers['Content-length'] = content.length;
+        headers['Content-type'] = 'application/x-www-form-urlencoded';
+        break;
+    }
+    var request = client.request(verb, u.href, headers);
+    if (content) {
+      request.write(content);
+    }
     request.end();
     request.on('response', function (response) {
       if ($_.printResponse) {
@@ -149,7 +165,7 @@ function WebShell(stream) {
       response.on('end', function() {
         web_repl.displayPrompt();
         ctx.$_.raw = body;
-        if ('application/json' == ctx.$_.headers['content-type']) {
+        if (U.inArray(ctx.$_.headers['content-type'], jsonHeaders)) {
           ctx.$_.json = JSON.parse(body);
         }
       });

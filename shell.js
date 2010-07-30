@@ -147,6 +147,9 @@ function WebShell(stream) {
       response.on('end', function() {
         web_repl.displayPrompt();
         ctx.$_.raw = body;
+        if ('application/json' == ctx.$_.headers['content-type']) {
+          ctx.$_.json = JSON.parse(body);
+        }
       });
     });
   };

@@ -184,12 +184,22 @@ function WebShell(stream) {
     switch (verb) {
       case 'POST':
         content = querystring.stringify($_.requestData);
-        headers['Content-length'] = content.length;
         headers['Content-type'] = 'application/x-www-form-urlencoded';
+        break;
+      case 'PUT':
+        try {
+          content = fs.readFileSync($_.requestData);
+        } catch (e) {
+          sys.puts("Set $_.requestData to the filename to PUT".red());
+          web_repl.displayPrompt();
+          return false;
+        }
+        headers['Content-type'] = 'application/octet-stream';
         break;
     }
     var request = client.request(verb, u.href, headers);
     if (content) {
+      headers['Content-length'] = content.length;
       request.write(content);
     }
     request.end();

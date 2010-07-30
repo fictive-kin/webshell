@@ -67,16 +67,32 @@ function WebShell(stream) {
   for(var f in style) {
     String.prototype[f] = style[f];
   }
-  
+
+  function getRC() {
+    try {
+      return JSON.parse(fs.readFileSync(process.env.HOME + '/.webshellrc'));
+    } catch (e) {
+      return { history: [], contexts: {} };
+    }
+  }
+
+  function writeRC(rc) {
+    return fs.writeFileSync(
+      process.env.HOME + '/.webshellrc',
+      JSON.stringify(rc)
+    );
+  }
+
   oldParseREPLKeyword = repl.REPLServer.prototype.parseREPLKeyword;
   web_repl = new repl.REPLServer("webshell> ", stream);
   process.on('exit', function () {
       var history = web_repl.rli.history;
-      fs.writeFileSync(process.env.HOME + '/.webshellrc', JSON.stringify({history: history.slice(-100)}));
+      var rc = getRC();
+      rc.history = history.slice(-100);
+      writeRC(rc);
   });
-  try {
-    web_repl.rli.history = JSON.parse(fs.readFileSync(process.env.HOME + '/.webshellrc')).history;
-  } catch (e) {}
+  web_repl.rli.history = getRC().history;
+
   var ctx = web_repl.context;
 
   repl.REPLServer.prototype.parseREPLKeyword = this.parseREPLKeyword;

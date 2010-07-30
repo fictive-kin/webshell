@@ -59,6 +59,8 @@ var $_ = {
   headers: []
 };
 
+var verbs = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD', 'TRACE', 'CONNECT'];
+
 function WebShell(stream) {
   for(var f in style) {
     String.prototype[f] = style[f];
@@ -74,13 +76,14 @@ function WebShell(stream) {
   var ctx = web_repl.context;
 
   repl.REPLServer.prototype.parseREPLKeyword = this.parseREPLKeyword;
-  formatStatus = function(code) {
+  formatStatus = function(code, url) {
+    var msg = "HTTP " + code + " " + url.white();
     if (200 <= code && code < 300) {
-      sys.puts(("HTTP " + code).green());
+      sys.puts(msg.green());
     } else if (300 <= code && code < 400) {
-      sys.puts(("HTTP " + code).yellow());
+      sys.puts(msg.yellow());
     } else if (400 <= code && code < 600) {
-      sys.puts(("HTTP " + code).red());
+      sys.puts(msg.red());
     }
   };
   
@@ -111,13 +114,13 @@ function WebShell(stream) {
         }
         location = url.format(locationUrl);
       }
-      sys.puts(("Following: " + location).yellow());
       doHttpReq($_.previousVerb, location);
     } else {
       sys.puts("No previous request!".red());
     }
   };
-  
+  ctx.$_.follow = doRedirect;
+
   doHttpReq = function(verb, urlStr) {
     var u = url.parse(urlStr);
     var client = http.createClient(80, u.hostname);
@@ -127,7 +130,7 @@ function WebShell(stream) {
     request.end();
     request.on('response', function (response) {
       if ($_.printResponse) {
-        formatStatus(response.statusCode);
+        formatStatus(response.statusCode, urlStr);
       }
       ctx.$_.status = response.statusCode;
       
@@ -151,20 +154,14 @@ function WebShell(stream) {
 
 WebShell.prototype = {
   parseREPLKeyword: function(cmd) {
-    var verbs = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD', 'TRACE', 'CONNECT'];
     if (oldParseREPLKeyword.call(this, cmd)) {
       return true;
     }
     try {
-      if (cmd === "follow!") {
-        doRedirect();
+      var split = cmd.split(' ');
+      if (split.length === 2 && U.inArray(split[0], verbs)) {
+        doHttpReq(split[0], split[1]);
         return true;
-      } else {
-        var split = cmd.split(' ');
-        if (split.length === 2 && U.inArray(split[0], verbs)) {
-          doHttpReq(split[0], split[1]);
-          return true;
-        }
       }
     } catch(e) {
     }

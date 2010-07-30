@@ -54,6 +54,7 @@ var $_ = {
   response: null,
   status: 0,
   previousVerb: null,
+  previousUrl: null,
   headers: []
 };
 
@@ -89,7 +90,22 @@ function WebShell(stream) {
   
   doRedirect = function() {
     var location = $_.headers.location;
+    var prevUrl = url.parse($_.previousUrl);
+    var locationUrl = url.parse(location);
     if (location) {
+      if (!locationUrl.protocol) {
+        // a relative URL, auto-populate with previous URL's info
+        locationUrl.protocol = prevUrl.protocol;
+        locationUrl.hostname = prevUrl.hostname;
+        if (prevUrl.auth) {
+          locationUrl.auth = prevUrl.auth;
+        }
+        if (prevUrl.port) {
+          locationUrl.port = prevUrl.port;
+        }
+        location = url.format(locationUrl);
+      }
+      sys.puts(("Following: " + location).yellow());
       doHttpReq($_.previousVerb, location);
     } else {
       sys.puts("No previous request!".red());
@@ -101,6 +117,7 @@ function WebShell(stream) {
     var client = http.createClient(80, u.hostname);
     var request = client.request(verb, u.pathname, {'host': u.hostname});
     $_.previousVerb = verb;
+    $_.previousUrl = urlStr;
     request.end();
     request.on('response', function (response) {
       if ($_.printResponse) {

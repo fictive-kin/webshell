@@ -227,7 +227,7 @@ function WebShell(stream) {
 
   doHttpReq = function(verb, urlStr) {
     var u = url.parse(urlStr);
-    var client = http.createClient(80, u.hostname);
+    var client = http.createClient(u.port || 80, u.hostname);
     var jsonHeaders = ['application/json', 'text/x-json'];
     $_.previousVerb = verb;
     $_.previousUrl = urlStr;

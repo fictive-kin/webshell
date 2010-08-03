@@ -58,7 +58,15 @@ var $_ = {
   previousVerb: null,
   previousUrl: null,
   headers: [],
-  requestData: null
+  requestData: null,
+  postToRequestData: function (post) {
+    var data = querystring.parse(post);
+    if (data) {
+      this.requestData = data;
+      return data;
+    }
+    return false;
+  }
 };
 
 var verbs = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD', 'TRACE', 'CONNECT'];

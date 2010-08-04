@@ -16,7 +16,8 @@ var sys = require('sys'),
     querystring = require('querystring'),
     style = require('colored');
     Script = process.binding('evals').Script,
-    evalcx = Script.runInContext;
+    evalcx = Script.runInContext,
+    base64 = require('base64');
 
 var U = {
   inArray: function(value, array) {
@@ -233,6 +234,14 @@ function WebShell(stream) {
 
   }
 
+  function makeHeaders(url) {
+    var headers = {'Host': url.hostname, 'User-Agent': 'webshell (node.js)' };
+    if (url.auth) {
+      headers['Authorization'] = 'Basic ' + base64.encode(url.auth);
+    }
+    return headers;
+  }
+
   doHttpReq = function(verb, urlStr) {
     var u = url.parse(urlStr);
     var client = http.createClient(u.port || 80, u.hostname);
@@ -241,7 +250,7 @@ function WebShell(stream) {
     $_.previousUrl = urlStr;
 
     var content = null;
-    var headers = {host: u.hostname};
+    var headers = makeHeaders(u);
     switch (verb) {
       case 'POST':
         content = querystring.stringify($_.requestData);

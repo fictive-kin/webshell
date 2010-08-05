@@ -7,6 +7,7 @@
 /* headers: $_.headers */
 /* to follow redirects - use the command `follow!' */
 
+require.paths.unshift(__dirname + '/deps');
 require.paths.unshift(__dirname);
 var sys = require('sys'),
     repl = require('repl'),
@@ -17,38 +18,10 @@ var sys = require('sys'),
     style = require('colored');
     Script = process.binding('evals').Script,
     evalcx = Script.runInContext,
-    base64 = require('base64');
+    base64 = require('base64'),
+    cookies = require('cookies'),
+    U = require('util');
 
-var U = {
-  inArray: function(value, array) {
-    for (var i = 0, l = array.length; i < l; i++) {
-      if (array[i] === value) {
-        return true;
-      }
-    }
-    return false;
-  },
-  map: function(obj, fn) {
-    var newArray = [];
-    for (var i = 0, l = obj.length; i < l; i++) {
-      newArray.push(fn.call(this, obj[i]));
-    }
-    return newArray;
-  },
-  each: function(obj, fn) {
-    if (obj.constructor === Array) {
-      for (var i = 0, l = obj.length; i < l; i++) {
-        fn.call(this, obj[i]);
-      }
-    } else {
-      for (var k in obj) {
-        if (obj.hasOwnProperty(k)) {
-          fn.call(this, k, obj[k]);
-        }
-      }
-    }
-  }
-};
 
 var $_ = {
   printHeaders: false,
@@ -60,6 +33,7 @@ var $_ = {
   previousUrl: null,
   headers: [],
   requestData: null,
+  useCookies: true,
   postToRequestData: function (post) {
     var data = querystring.parse(post);
     if (data) {
@@ -67,7 +41,8 @@ var $_ = {
       return data;
     }
     return false;
-  }
+  },
+  cookies: cookies
 };
 
 var verbs = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD', 'TRACE', 'CONNECT'];
@@ -81,15 +56,23 @@ function WebShell(stream) {
     try {
       return JSON.parse(fs.readFileSync(process.env.HOME + '/.webshellrc'));
     } catch (e) {
-      return { history: [], contexts: {} };
+      return { history: [], contexts: {}, cookies: {} };
     }
   }
 
   function writeRC(rc) {
+    rc.cookies = cookies.compactJar(true);
     return fs.writeFileSync(
       process.env.HOME + '/.webshellrc',
       JSON.stringify(rc)
     );
+  }
+  
+  function parseURL(urlStr) {
+    var u = url.parse(urlStr);
+    u.port = u.port || 80;
+    u.pathname = u.pathname || '/';
+    return u;
   }
 
   oldParseREPLKeyword = repl.REPLServer.prototype.parseREPLKeyword;
@@ -182,9 +165,9 @@ function WebShell(stream) {
   doRedirect = function() {
     var location = $_.headers.location;
     if (location) {
-      var locationUrl = url.parse(location);
+      var locationUrl = parseURL(location);
       if (!locationUrl.protocol) {
-        var prevUrl = url.parse($_.previousUrl);
+        var prevUrl = parseURL($_.previousUrl);
         // a relative URL, auto-populate with previous URL's info
         locationUrl.protocol = prevUrl.protocol;
         locationUrl.hostname = prevUrl.hostname;
@@ -233,18 +216,21 @@ function WebShell(stream) {
     }
 
   }
-
+  
   function makeHeaders(url) {
-    var headers = {'Host': url.hostname, 'User-Agent': 'webshell (node.js)' };
+    var headers = {'Host': url.hostname, 'User-Agent': 'webshell (node.js)'};
     if (url.auth) {
       headers['Authorization'] = 'Basic ' + base64.encode(url.auth);
+    }
+    if ($_.useCookies) {
+      headers['Cookie'] = cookies.headerFor(url);
     }
     return headers;
   }
 
   doHttpReq = function(verb, urlStr) {
-    var u = url.parse(urlStr);
-    var client = http.createClient(u.port || 80, u.hostname);
+    var u = parseURL(urlStr);
+    var client = http.createClient(u.port, u.hostname);
     var jsonHeaders = ['application/json', 'text/x-json'];
     $_.previousVerb = verb;
     $_.previousUrl = urlStr;
@@ -283,7 +269,9 @@ function WebShell(stream) {
         U.each(response.headers, printHeader);
       }
       ctx.$_.headers = response.headers;
-      
+      if ($_.useCookies) {
+        $_.cookies.update(u.hostname, response.headers['set-cookie']);
+      }
       response.setEncoding('utf8');
       var body = "";
       response.on('data', function (chunk) {

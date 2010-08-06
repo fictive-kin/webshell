@@ -178,6 +178,8 @@ function WebShell(stream) {
         obj[k] = v;
       }
     });
+    delete obj['cookies'];
+    obj.__cookieJar = $_.cookies.__get_raw__();
 
     var rc = wsrc.get();
 
@@ -195,6 +197,8 @@ function WebShell(stream) {
       U.each(rc.contexts[name], function (k, v) {
         ctx.$_[k] = v;
       });
+      $_.cookies.__set_raw__(ctx.$_.__cookieJar);
+      delete ctx.$_['__cookieJar'];
       sys.puts("Loaded context: " + name);
     } else {
       sys.puts(("Could not load context: " + name).red());

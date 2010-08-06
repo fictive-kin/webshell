@@ -124,6 +124,15 @@ function headerFor(url) {
   return kvs.length > 0 ? kvs.join('; ') : undefined;
 }
 
+/* internal use only */
+function get_raw() {
+  return cookieJar;
+}
+
+/* internal use only */
+function set_raw(jar) {
+  cookieJar = jar;
+}
 
 exports.clear = clear;
 exports.remove = remove;
@@ -132,6 +141,8 @@ exports.get = get;
 exports.update = update;
 exports.compactJar = compactJar;
 exports.headerFor = headerFor;
+exports.__set_raw__ = set_raw;
+exports.__get_raw__ = get_raw;
 /*
 
 function createCookie(name,value,days) {

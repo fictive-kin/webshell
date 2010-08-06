@@ -20,7 +20,8 @@ var sys = require('sys'),
     evalcx = Script.runInContext,
     base64 = require('base64'),
     cookies = require('cookies'),
-    U = require('util');
+    U = require('util'),
+    wsrc = require('wsrc');
 
 
 var $_ = {
@@ -52,22 +53,6 @@ function WebShell(stream) {
     String.prototype[f] = style[f];
   }
 
-  function getRC() {
-    try {
-      return JSON.parse(fs.readFileSync(process.env.HOME + '/.webshellrc'));
-    } catch (e) {
-      return { history: [], contexts: {}, cookies: {} };
-    }
-  }
-
-  function writeRC(rc) {
-    rc.cookies = cookies.compactJar(true);
-    return fs.writeFileSync(
-      process.env.HOME + '/.webshellrc',
-      JSON.stringify(rc)
-    );
-  }
-  
   function parseURL(urlStr) {
     var u = url.parse(urlStr);
     u.port = u.port || 80;
@@ -79,11 +64,11 @@ function WebShell(stream) {
   web_repl = new repl.REPLServer("webshell> ", stream);
   process.on('exit', function () {
       var history = web_repl.rli.history;
-      var rc = getRC();
+      var rc = wsrc.get();
       rc.history = history.slice(-100);
-      writeRC(rc);
+      wsrc.write(rc, cookies);
   });
-  web_repl.rli.history = getRC().history;
+  web_repl.rli.history = wsrc.get().history;
 
   // trap tab key:
   web_repl.stream.on('data', function (chunk) {
@@ -194,18 +179,18 @@ function WebShell(stream) {
       }
     });
 
-    var rc = getRC();
+    var rc = wsrc.get();
 
     if (!rc.contexts) {
       rc.contexts = {};
     }
     rc.contexts[name] = obj;
-    writeRC(rc);
+    wsrc.write(rc, cookies);
     sys.puts("Saved context: " + name);
   }
 
   ctx.$_.loadContext = function(name) {
-    var rc = getRC();
+    var rc = wsrc.get();
     if (rc.contexts[name]) {
       U.each(rc.contexts[name], function (k, v) {
         ctx.$_[k] = v;

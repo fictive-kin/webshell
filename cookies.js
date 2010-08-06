@@ -1,12 +1,11 @@
 var sys = require('sys'),
     fs = require('fs'),
-    U = require('util');
+    U = require('util'),
+    wsrc = require('wsrc');
 
-try {
-  var cookieJar = JSON.parse(fs.readFileSync(process.env.HOME + '/.webshellrc')).cookies || {};
-} catch (e) {
-  var cookieJar = {};
-}
+var rc = wsrc.get();
+var cookieJar = rc.cookies || {};
+
 function clear() {
   cookieJar = {};
 }

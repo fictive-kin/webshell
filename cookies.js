@@ -1,5 +1,4 @@
-var sys = require('sys'),
-    fs = require('fs'),
+var fs = require('fs'),
     U = require('util'),
     wsrc = require('wsrc');
 

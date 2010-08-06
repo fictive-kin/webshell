@@ -20,8 +20,8 @@ var sys = require('sys'),
     cookies = require('cookies'),
     wsrc = require('wsrc'),
     wsreadline = require('wsreadline'),
-    eventEmitter = require('events').EventEmitter,
-    _ = require('underscore')._;
+    _ = require('underscore')._,
+    env = require('env');
 
 // NOTE: readline requires node.js patch; see http://gist.github.com/514195
 // Requested a pull from ry, and from the node mailing list 2010/08/08 -SC
@@ -124,6 +124,8 @@ function WebShell(stream) {
   });
 
   var ctx = web_repl.context;
+  env.setup(ctx);
+  ctx.$ = require('jquery');
 
   repl.REPLServer.prototype.parseREPLKeyword = this.parseREPLKeyword;
   formatStatus = function(code, url) {

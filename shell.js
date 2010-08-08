@@ -87,29 +87,7 @@ function WebShell(stream) {
     var line = web_repl.rli.line.substring(0, web_repl.rli.line.length -1);
     var split = line.split(' ');
     if (U.inArray(split[0], verbs)) {
-      var matches = [];
-      U.each(web_repl.rli.history, function (cmd) {
-        if (cmd.substring(0, line.length) == line) {
-          if (!U.inArray(cmd, matches)) {
-            matches.push(cmd);
-          }
-        }
-      });
-      if (matches.length > 1) {
-        sys.puts("\r");
-        U.each(matches, function (cmd) {
-          sys.puts(cmd.blue() + "\r");
-        });
-        web_repl.rli.line = line;
-        web_repl.rli.prompt();
-        web_repl.rli.cursorToEnd();
-        return false;
-      } else if (matches.length == 1) {
-        web_repl.rli.line = matches[0];
-        web_repl.rli.prompt();
-        web_repl.rli.cursorToEnd();
-        return false;
-      }
+      return web_repl.rli.complete(true);
     }
     return true;
   });

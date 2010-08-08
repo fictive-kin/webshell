@@ -1,0 +1,9 @@
+diff --git a/lib/readline.js b/lib/readline.js
+index 75ccf23..7c6f416 100644
+--- a/lib/readline.js
++++ b/lib/readline.js
+@@ -285,3 +285,4 @@ Interface.prototype._ttyWrite = function (b) {
+   }
+ };
+ 
++exports.Interface = Interface;

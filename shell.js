@@ -21,8 +21,11 @@ var sys = require('sys'),
     base64 = require('base64'),
     cookies = require('cookies'),
     U = require('util'),
-    wsrc = require('wsrc');
+    wsrc = require('wsrc'),
+    wsreadline = require('wsreadline');
 
+// NOTE: readline requires node.js patch; see http://gist.github.com/514195
+// Requested a pull from ry, and from the node mailing list 2010/08/08 -SC
 
 var $_ = {
   printHeaders: false,
@@ -99,24 +102,12 @@ function WebShell(stream) {
         });
         web_repl.rli.line = line;
         web_repl.rli.prompt();
-        // hackery:
-        web_repl.rli.output.write(
-          '\x1b[0G\x1b[' + (
-            web_repl.rli._promptLength + line.length
-          ) + 'C'
-        );
-        web_repl.rli.cursor = line.length;
+        web_repl.rli.cursorToEnd();
         return false;
       } else if (matches.length == 1) {
         web_repl.rli.line = matches[0];
         web_repl.rli.prompt();
-        // hackery:
-        web_repl.rli.output.write(
-            '\x1b[0G\x1b[' + (
-              web_repl.rli._promptLength + matches[0].length
-              ) + 'C'
-            );
-        web_repl.rli.cursor = matches[0].length;
+        web_repl.rli.cursorToEnd();
         return false;
       }
     }

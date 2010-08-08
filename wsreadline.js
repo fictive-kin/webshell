@@ -38,7 +38,18 @@ readline.Interface.prototype.completeHistory = function(chop) {
     matches.map(function (val) {
       sys.puts(val + "\r");
     });
-    this.line = line;
+    // populate the line with as much of the matches as we can
+    // (the common part)
+    var common = matches[0];
+    matches.map(function(v) {
+      for (var i=0; i<common.length; i++) {
+        if (v.charAt(i) != common.charAt(i)) {
+          common = common.substring(0, i);
+          return;
+        }
+      }
+    });
+    this.line = common;
     this.prompt();
     this.cursorToEnd();
     return false; // did not complete, but matches found

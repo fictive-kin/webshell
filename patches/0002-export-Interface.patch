@@ -1,0 +1,21 @@
+From 2062a622caaa60378fd3e6e897ede55fb9e9d64e Mon Sep 17 00:00:00 2001
+From: scoates <sean@seancoates.com>
+Date: Sun, 8 Aug 2010 11:50:20 -0400
+Subject: [PATCH] export Interface
+
+---
+ lib/readline.js |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/lib/readline.js b/lib/readline.js
+index 75ccf23..7c6f416 100644
+--- a/lib/readline.js
++++ b/lib/readline.js
+@@ -285,3 +285,4 @@ Interface.prototype._ttyWrite = function (b) {
+   }
+ };
+ 
++exports.Interface = Interface;
+-- 
+1.7.0.3
+

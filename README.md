@@ -5,6 +5,11 @@ by Evan Haas and Sean Coates
 
 Includes tab completion, history, context persistence and cookies.
 
+Setup
+-----
+git submodule update --init
+make
+
 This is best demonstrated.
 
 Simple HTTP requests

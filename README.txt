@@ -4,6 +4,8 @@ Includes tab completion, history, context persistence and cookies.
 
 This is best demonstrated:
 
+Simple HTTP Requests
+
 sarcasm:~/src/webshell$ node shell.js 
 webshell> GET http://google.com/
 HTTP 301 http://google.com/
@@ -30,10 +32,21 @@ webshell> $_.raw.substring(0, 50)
 '<!doctype html><html><head><meta http-equiv="conte'
 webshell> ^D
 
+JSON processing
+
 sarcasm:~/src/webshell$ node shell.js
 webshell> GET http://twitter.com/users/coates.json
 HTTP 200 http://twitter.com/users/coates.json
 webshell> $_.json.name
+'Sean Coates'
+webshell> ^D
+
+Save and load contexts
+
+sarcasm:~/src/webshell$ node shell.js
+webshell> GET http://twitter.com/users/coates.json
+HTTP 200 http://twitter.com/users/coates.json
+webshell> $_.saveContext("twitter-coates")
 'Sean Coates'
 webshell> ^D
 
@@ -44,10 +57,14 @@ Loaded context: twitter-coates
 webshell> $_.json.name
 'Sean Coates'
 
+HTTP Auth
+
 sarcasm:~/src/webshell$ node shell.js
 webshell> GET http://coates:notmypassword@twitter.com/users/coates.json
 HTTP 401 http://coates:notmypassword@twitter.com/users/coates.json
 webshell> ^D
+
+Cookies
 
 sarcasm:~/src/webshell$ node shell.js 
 webshell> GET http://files.seancoates.com/cookiecounter.php
@@ -102,4 +119,46 @@ HTTP 200 http://files.seancoates.com/cookiecounter.php
 webshell> $_.cookies.get("files.seancoates.com").cookiecounter.value
 '6'
 webshell> ^D
+
+HTTP Verbs
+
+sarcasm:~/src/webshell$ node shell.js 
+webshell> GET http://files.seancoates.com/jsonifyrequest.php?one=1&two=2
+HTTP 200 http://files.seancoates.com/jsonifyrequest.php?one=1&two=2
+webshell> $_.json.get
+{ one: '1', two: '2' }
+webshell> $_.json.verb
+'GET'
+webshell> $_.requestData = { three: 3, four: 4 }
+{ three: 3, four: 4 }
+webshell> POST http://files.seancoates.com/jsonifyrequest.php?one=1&two=2
+HTTP 200 http://files.seancoates.com/jsonifyrequest.php?one=1&two=2
+webshell> $_.json.post
+{ three: '3', four: '4' }
+webshell> $_.requestData = "five=5&six=6"
+'five=5&six=6'
+webshell> POST http://files.seancoates.com/jsonifyrequest.php?one=1&two=2
+HTTP 200 http://files.seancoates.com/jsonifyrequest.php?one=1&two=2
+webshell> $_.json.post
+{ five: '5', six: '6' }
+webshell> $_.json.verb
+'POST'
+webshell> ^D
+sarcasm:~/src/webshell$ echo "testing some PUT data" > ~/test.txt
+sarcasm:~/src/webshell$ node shell.js 
+webshell> $_.requestData = "/Users/sean/test.txt"
+'/Users/sean/test.txt'
+webshell> PUT http://files.seancoates.com/jsonifyrequest.php?one=1&two=2
+HTTP 200 http://files.seancoates.com/jsonifyrequest.php?one=1&two=2
+webshell> $_.json.verb
+'PUT'
+webshell> $_.json.input
+'testing some PUT data\n'
+webshell> DELETE http://files.seancoates.com/jsonifyrequest.php?one=1&two=2
+HTTP 200 http://files.seancoates.com/jsonifyrequest.php?one=1&two=2
+webshell> $_.json.verb
+'DELETE'
+webshell> ^D
+
+
 

@@ -105,12 +105,8 @@ exports.inArray = function(value, array) {
 };
 
 exports.map = function(obj, fn) {
-  if (this.isArray(obj)) {
-    var newArray = [];
-    for (var i = 0, l = obj.length; i < l; i++) {
-      newArray.push(fn.call(this, obj[i], i));
-    }
-    return newArray;
+  if (this.isFunction(obj.map)) {
+    return obj.map.call(obj, fn);
   } else {
     var newObj = {};
     for (var k in obj) {

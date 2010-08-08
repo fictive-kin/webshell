@@ -11,6 +11,10 @@ are:
   - Underscore.js is (c) 2010 Jeremy Ashkenas, DocumentCloud Inc.
     Underscore.js has an MIT license.
 
+  - libxml2 has an MIT license
+
+  - libxmljs is copyright (C) 2009, Squish Tech, LLC.  libxmljs has an MIT license.
+
 webshell's license follows:
 
 Copyright 2010 Evan Haas and Sean Coates

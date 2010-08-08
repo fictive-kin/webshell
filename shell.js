@@ -70,6 +70,7 @@ function WebShell(stream) {
       var rc = wsrc.get();
       rc.history = history.slice(-100);
       wsrc.write(rc, cookies);
+      sys.puts("\n");
   });
   web_repl.rli.history = wsrc.get().history;
 

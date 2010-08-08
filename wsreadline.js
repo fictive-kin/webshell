@@ -14,6 +14,10 @@ readline.Interface.prototype.cursorToEnd = function() {
 }
 
 readline.Interface.prototype.completeHistory = function(chop) {
+  return this.complete(chop, this.history);
+}
+
+readline.Interface.prototype.complete = function(chop, input) {
   // chop is useful for removing the "complete" character from the input
   // e.g., if the user presses "tab" then we want to chop off the tab
   if (chop) {
@@ -24,8 +28,8 @@ readline.Interface.prototype.completeHistory = function(chop) {
 
   var matches = [];
 
-  // find all matching history items (but avoid duplicates)
-  this.history.map(function (val) {
+  // find all matching items (but avoid duplicates)
+  input.map(function (val) {
     if (val.substring(0, line.length) == line
       && matches.indexOf(val) == -1) {
       matches.push(val);

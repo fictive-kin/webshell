@@ -87,7 +87,7 @@ function WebShell(stream) {
     var line = web_repl.rli.line.substring(0, web_repl.rli.line.length -1);
     var split = line.split(' ');
     if (U.inArray(split[0], verbs)) {
-      return web_repl.rli.complete(true);
+      return web_repl.rli.completeHistory(true);
     }
     return true;
   });

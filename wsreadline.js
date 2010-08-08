@@ -13,7 +13,7 @@ readline.Interface.prototype.cursorToEnd = function() {
   this.cursor = this.line.length;
 }
 
-readline.Interface.prototype.complete = function(chop) {
+readline.Interface.prototype.completeHistory = function(chop) {
   // chop is useful for removing the "complete" character from the input
   // e.g., if the user presses "tab" then we want to chop off the tab
   if (chop) {

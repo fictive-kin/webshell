@@ -84,11 +84,27 @@ function WebShell(stream) {
       // not the tab key
       return true;
     }
-    // tab (trim off the tab character)
-    var line = web_repl.rli.line.substring(0, web_repl.rli.line.length -1);
-    var split = line.split(' ');
+    var split = web_repl.rli.line.split(' ');
     if (U.inArray(split[0], verbs)) {
       return web_repl.rli.completeHistory(true);
+    } else if (web_repl.rli.line.substring(0, '$_.loadContext('.length) == '$_.loadContext(') {
+      var completion = [];
+      U.each(wsrc.get().contexts, function (k) {
+        completion.push('$_.loadContext("' + k + '")');
+      });
+      web_repl.rli.complete(true, completion);
+    } else if (web_repl.rli.line.substring(0, 3) == '$_.') {
+      var completion = [];
+      U.each($_, function (k) {
+        var completer = '$_.' + k;
+        if (typeof $_[k] === 'function') {
+          completer += '(';
+        }
+        completion.push(completer);
+      });
+      web_repl.rli.complete(true, completion);
+    } else {
+      sys.puts("\r\n" + web_repl.rli.line.substring(0, '$_.loadContext('.length));
     }
     return true;
   });

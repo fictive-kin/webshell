@@ -7,7 +7,7 @@
 var sys = require('sys'),
     http = require('http'),
     url = require('url'),
-    libxml = require('libxmljs'),
+    libxml = require('lib/libxmljs/libxmljs'),
     U = require('util');
 
 (function(){

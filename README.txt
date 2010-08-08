@@ -1,4 +1,5 @@
 Webshell: A console-based, JavaScripty HTTP client utility.
+by Evan Haas and Sean Coates
 
 Includes tab completion, history, context persistence and cookies.
 

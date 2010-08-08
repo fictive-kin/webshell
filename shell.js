@@ -214,8 +214,15 @@ function WebShell(stream) {
     var headers = makeHeaders(u);
     switch (verb) {
       case 'POST':
-        content = querystring.stringify($_.requestData);
-        headers['Content-type'] = 'application/x-www-form-urlencoded';
+        if (typeof $_.requestData == "object") {
+          content = querystring.stringify($_.requestData);
+          headers['Content-type'] = 'application/x-www-form-urlencoded';
+        } else {
+          if (!headers['Content-type']) {
+            headers['Content-type'] = 'application/x-www-form-urlencoded';
+          }
+          content = $_.requestData;
+        }
         break;
       case 'PUT':
         try {
@@ -255,7 +262,7 @@ function WebShell(stream) {
       response.on('end', function() {
         web_repl.displayPrompt();
         ctx.$_.raw = body;
-        if (U.inArray(ctx.$_.headers['content-type'], jsonHeaders)) {
+        if (U.inArray(ctx.$_.headers['content-type'].split('; ')[0], jsonHeaders)) {
           ctx.$_.json = JSON.parse(body);
         }
       });

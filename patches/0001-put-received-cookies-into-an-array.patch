@@ -1,0 +1,63 @@
+From 838ebd804fe6f34c797f75b615c9818041b80cc9 Mon Sep 17 00:00:00 2001
+From: Evan Haas <evanhaas@gmail.com>
+Date: Thu, 5 Aug 2010 18:29:53 -0700
+Subject: [PATCH] put received cookies into an array
+
+---
+ lib/http.js                                   |    5 ++++
+ test/simple/test-http-set-multiple-cookies.js |   27 +++++++++++++++++++++++++
+ 2 files changed, 32 insertions(+), 0 deletions(-)
+ create mode 100644 test/simple/test-http-set-multiple-cookies.js
+
+diff --git a/lib/http.js b/lib/http.js
+index 8c9a850..f69db87 100644
+--- a/lib/http.js
++++ b/lib/http.js
+@@ -235,6 +235,11 @@ IncomingMessage.prototype.resume = function () {
+ // and drop the second. Extended header fields (those beginning with 'x-') are
+ // always joined.
+ IncomingMessage.prototype._addHeaderLine = function (field, value) {
++  if (field === 'set-cookie') {
++    this.headers['set-cookie'] = this.headers['set-cookie'] || [];
++    this.headers['set-cookie'].push(value);
++    return;
++  }
+   if (!(field in this.headers)) {
+     this.headers[field] = value;
+     return;
+diff --git a/test/simple/test-http-set-multiple-cookies.js b/test/simple/test-http-set-multiple-cookies.js
+new file mode 100644
+index 0000000..53b8073
+--- /dev/null
++++ b/test/simple/test-http-set-multiple-cookies.js
+@@ -0,0 +1,27 @@
++common = require("../common");
++assert = common.assert
++http = require("http");
++
++var cookie_header = "";
++
++http.createServer(function (req, res) {
++  var self = this;
++  req.addListener('end', function () {
++    res.writeHead(204, [["Set-Cookie", "a=b"], ["Set-Cookie", "c=d"]]);
++    res.end();
++    self.close();
++  });
++}).listen(common.PORT);
++
++var client = http.createClient(common.PORT);
++var req = client.request("/", {"Accept": "*/*"});
++req.end();
++req.addListener('response', function (res) {
++  cookie_header = res.headers['set-cookie'];
++});
++
++
++process.addListener("exit", function () {
++  assert.equal(["a=b", "c=d"].join(), cookie_header.join());
++});
++
+-- 
+1.7.2.1
+

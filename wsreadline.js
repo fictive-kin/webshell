@@ -68,3 +68,19 @@ readline.Interface.prototype.complete = function(chop, input) {
   // if we haven't returned yet, that means that there are no matches
   return null;
 }
+
+readline.Interface.prototype.node_ttyWrite = readline.Interface.prototype._ttyWrite;
+
+readline.Interface.prototype._ttyWrite = function (b) {
+  switch (b[0]) {
+    case 12: // CTRL-L
+      // clear screen
+      this.output.write('\x1b[2J');
+      this.output.write('\x1b[0;0H');
+      this._refreshLine();
+
+      return;
+  }
+  // unhandled, so let the original method handle it
+  this.node_ttyWrite(b);
+}

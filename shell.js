@@ -87,6 +87,8 @@ function WebShell(stream) {
       rc.history = history.slice(-100);
       wsrc.write(rc, cookies);
       sys.puts("\n");
+      node.exit();
+//      process.stdout.end();
   });
   web_repl.rli.history = wsrc.get().history;
 

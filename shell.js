@@ -284,6 +284,9 @@ WebShell.prototype = {
         return true;
       }
     } catch(e) {
+      console.log(e.stack);
+      web_repl.displayPrompt();
+      return true;
     }
     return false;
   },

@@ -60,7 +60,7 @@ function WebShell(stream) {
     if (!u.protocol) {
       u = url.parse('http://'+urlStr);
     }
-    u.port = u.port || 80;
+    u.port = u.port || (u.protocol === 'https:' ? 443 : 80);
     u.pathname = u.pathname || '/';
     return u;
   }

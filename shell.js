@@ -284,10 +284,12 @@ WebShell.prototype = {
       return true;
     }
     try {
-      var split = cmd.split(' ');
-      if (split.length === 2 && U.inArray(split[0], verbs)) {
-        doHttpReq(split[0], split[1]);
-        return true;
+      if (cmd) {
+        var split = cmd.split(' ');
+        if (split.length === 2 && U.inArray(split[0], verbs)) {
+          doHttpReq(split[0], split[1]);
+          return true;
+        }
       }
     } catch(e) {
       console.log(e.stack);

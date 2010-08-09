@@ -229,7 +229,9 @@ function WebShell(stream) {
           web_repl.displayPrompt();
           return false;
         }
-        headers['Content-type'] = 'application/octet-stream';
+        if (!headers['Content-type']) {
+          headers['Content-type'] = 'application/octet-stream';
+        }
         break;
     }
     var request = client.request(verb, u.href, headers);

@@ -84,6 +84,9 @@ function mergeCookies(domain, cookies, cookieJar) {
 
 function update(domain, header) {
   if (header) {
+    if (!U.isArray(header)) {
+      header = [header];
+    }
     var cookies = header.map(parseCookie);
     U.each(cookies, function(cookie) {
       if (!cookie.domain) {

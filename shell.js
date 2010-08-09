@@ -7,7 +7,7 @@
 /* headers: $_.headers */
 /* to follow redirects - use the command `follow!' */
 
-require.paths.unshift(__dirname + '/deps');
+require.paths.unshift(__dirname + '/lib');
 require.paths.unshift(__dirname);
 var sys = require('sys'),
     repl = require('repl'),

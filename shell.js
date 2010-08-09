@@ -112,11 +112,11 @@ function WebShell(stream) {
   formatStatus = function(code, url) {
     var msg = "HTTP " + code + " " + url.white();
     if (200 <= code && code < 300) {
-      sys.puts(msg.green());
+      console.log(msg.green());
     } else if (300 <= code && code < 400) {
-      sys.puts(msg.yellow());
+      console.log(msg.yellow());
     } else if (400 <= code && code < 600) {
-      sys.puts(msg.red());
+      console.log(msg.red());
     }
   };
   
@@ -284,8 +284,16 @@ WebShell.prototype = {
     }
     web_repl.displayPrompt();
     return true;
+  },  
+  rescue: function() {
+    web_repl.displayPrompt();
   }
 };
 
-new WebShell();
+var shell = new WebShell();
+
+process.on('uncaughtException', function (err) {
+  console.log(('Caught exception: ' + err).red());
+  shell.rescue();
+});
 

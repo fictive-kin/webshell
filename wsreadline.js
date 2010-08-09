@@ -79,7 +79,7 @@ readline.Interface.prototype._ttyWrite = function (b) {
       break;
 
     case 4: // control-d, delete right or EOF
-      if (this.cursor === 0 && this.line.length === 0) {
+      if (this.cursor === 0 && this.line.length === 0) { // only at start
         this.output.write("^D");
       }
       break;
@@ -89,7 +89,6 @@ readline.Interface.prototype._ttyWrite = function (b) {
       this.output.write('\x1b[2J');
       this.output.write('\x1b[0;0H');
       this._refreshLine();
-
       return;
 
     case 27:

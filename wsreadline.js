@@ -91,6 +91,18 @@ readline.Interface.prototype._ttyWrite = function (b) {
       this._refreshLine();
 
       return;
+
+    case 27:
+      if (b[1] == 91 && b[2] == 72) { // home
+        this.cursor = 0;
+        this._refreshLine();
+        return;
+      }
+      if (b[1] = 91 && b[2] == 70) { // end
+        this.cursor = this.line.length;
+        this._refreshLine();
+        return;
+      }
   }
   // unhandled, so let the original method handle it
   this.node_ttyWrite(b);

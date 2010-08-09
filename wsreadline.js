@@ -73,6 +73,17 @@ readline.Interface.prototype.node_ttyWrite = readline.Interface.prototype._ttyWr
 
 readline.Interface.prototype._ttyWrite = function (b) {
   switch (b[0]) {
+
+    case 3: // control-c
+      this.output.write("^C");
+      break;
+
+    case 4: // control-d, delete right or EOF
+      if (this.cursor === 0 && this.line.length === 0) {
+        this.output.write("^D");
+      }
+      break;
+
     case 12: // CTRL-L
       // clear screen
       this.output.write('\x1b[2J');

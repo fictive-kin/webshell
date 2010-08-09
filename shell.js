@@ -243,7 +243,7 @@ function WebShell(stream) {
         }
         break;
     }
-    var request = client.request(verb, u.href, headers);
+    var request = client.request(verb, u.pathname, headers);
     if (content) {
       headers['Content-length'] = content.length;
       request.write(content);

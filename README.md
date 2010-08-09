@@ -7,6 +7,18 @@ Includes tab completion, history, context persistence and cookies.
 
 This is best demonstrated.
 
+Setup
+-----
+To handle cookies properly, you'll need to use a patched build of the node source.
+To apply the patch, run this from your node source directory:
+
+    git am /path/to/webshell/patches/0001-put-received-cookies-into-an-array.patch
+    make
+    make install
+
+If you don't apply the patch, webshell will still work, but you'll only have access
+to the first set-cookie header in a given http request.
+
 Simple HTTP requests
 --------------------
 

@@ -126,8 +126,6 @@ function WebShell(stream) {
   });
 
   var ctx = web_repl.context;
-  env.setup(ctx);
-  ctx.$ = require('jquery');
 
   repl.REPLServer.prototype.parseREPLKeyword = this.parseREPLKeyword;
   formatStatus = function(code, url) {
@@ -231,6 +229,7 @@ function WebShell(stream) {
     var u = parseURL(urlStr);
     var client = http.createClient(u.port, u.hostname, u.protocol === 'https:');
     var jsonHeaders = ['application/json', 'text/x-json'];
+    var xmlHeaders = ['text/html', 'text/xml', 'application/xml', 'application/rss+xml', 'application/rdf+xml', 'application/atom+xml'];
     $_.previousVerb = verb;
     $_.previousUrl = urlStr;
 
@@ -288,8 +287,12 @@ function WebShell(stream) {
       response.on('end', function() {
         web_repl.displayPrompt();
         ctx.$_.raw = body;
+        ctx.$_.document = ctx.$_.json = null;
         if (_.include(jsonHeaders, ctx.$_.headers['content-type'].split('; ')[0])) {
           ctx.$_.json = JSON.parse(body);
+        }
+        if (_.include(xmlHeaders, ctx.$_.headers['content-type'].split('; ')[0])) {
+          ctx.$_.document = new env.DOMDocument(body);
         }
       });
     });

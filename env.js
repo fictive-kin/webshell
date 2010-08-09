@@ -11,6 +11,15 @@ var sys = require('sys'),
     U = require('util');
 
 (function(){
+  /* eventually use this for custom printing of DOM elements when eval'ed in REPL */
+  /* thanks elliottcable on #node.js */
+  function define(prototype, property, value) {
+    var propertyAlreadyExists = prototype.hasOwnProperty(property);
+    if (!propertyAlreadyExists) {
+      Object.defineProperty(prototype, property, { value:value, enumerable:false });
+    }
+  }
+  
   // The window Object
   var window = {};
 
@@ -143,7 +152,7 @@ var sys = require('sys'),
 	window.DOMDocument=DOMDocument;
 	
 	function _getElementsByTagName(dom, name) {
-		return dom.find(name);
+		return dom.find('//'+name);
 	}
 	
 	DOMDocument.prototype = {
@@ -159,20 +168,37 @@ var sys = require('sys'),
 		getElementsByTagName: function(name){
 			return new DOMNodeList(_getElementsByTagName(this._dom, name.toLowerCase()));
 		},
-		getElementById: function(id){
+		getElementsByClassName: function(name){
 			var elems = _getElementsByTagName(this._dom, "*");
-			
+			var results = [];
 			for ( var i = 0, l = elems.length; i < l; i++ ) {
 				var elem = elems[i];
-				if (elem.getAttribute("id") == id)
-					return makeNode(elem);
-			}
+				var attr = elem.attr('class');
+				if (attr && attr.value() === name) {
+				  results.push(elem);
+			  }
+		  }
+			
+			return new DOMNodeList(results);
+	  },
+		getElementById: function(id){
+			var elems = _getElementsByTagName(this._dom, "*");
+			for ( var i = 0, l = elems.length; i < l; i++ ) {
+				var elem = elems[i];
+				var attr = elem.attr('id');
+				if (attr && attr.value() === id) {
+				  return makeNode(elem);
+			  }
+		  }
 			
 			return null;
 		},
 		get body(){
 			return this.getElementsByTagName("body")[0];
 		},
+		get head(){
+			return this.getElementsByTagName("head")[0];
+	  },
 		get G(){
 			return makeNode(this._dom.document());
 		},
@@ -749,10 +775,6 @@ var sys = require('sys'),
 		status: 0
 	};
 	
-	function setup(ctx) {
-	  ctx.document = window.document;
-    ctx.window = window;
-  }
-  exports.setup = setup;
+	exports.DOMDocument = DOMDocument;
 	
 })();

@@ -4,13 +4,14 @@ by Evan Haas and Sean Coates
 ----------------------------
 
 Includes tab completion, history, context persistence and cookies.
+This is best demonstrated.
+
 
 Setup
 -----
+To enable XML/HTML parsing:
 git submodule update --init
 make
-
-This is best demonstrated.
 
 Simple HTTP requests
 --------------------

@@ -7,8 +7,14 @@
 var sys = require('sys'),
     http = require('http'),
     url = require('url'),
-    libxml = require('libxmljs/libxmljs'),
     U = require('util');
+var libxml;
+try {
+  libxml = require('libxmljs/libxmljs');
+} catch (e) {
+  exports.DOMDocument = function(x) { };
+  return;
+}
 
 (function(){
   /* eventually use this for custom printing of DOM elements when eval'ed in REPL */

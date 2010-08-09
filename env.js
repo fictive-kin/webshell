@@ -7,7 +7,7 @@
 var sys = require('sys'),
     http = require('http'),
     url = require('url'),
-    libxml = require('lib/libxmljs/libxmljs'),
+    libxml = require('libxmljs/libxmljs'),
     U = require('util');
 
 (function(){
@@ -300,6 +300,33 @@ var sys = require('sys'),
 			return this.nodeValue;
 		}
 	};
+	
+	DOMDocumentFragment = function(elem){
+		this._dom = elem;
+	};
+	
+	DOMDocumentFragment.prototype = extend( new DOMNode(), {
+		get childNodes(){
+			return new DOMNodeList(this._dom.childNodes());
+		},
+		get firstChild(){
+			return makeNode(this._dom.childNodes()[0]);
+		},
+		get lastChild(){
+			var children = this._dom.childNodes();
+			return makeNode(children[children.length - 1]);
+		},
+		appendChild: function(node){
+			this._dom.addChild(node._dom);
+			return node;
+		},
+		removeChild: function(node){
+			node._dom.remove();
+			return node;
+		},
+
+		getElementsByTagName: DOMDocument.prototype.getElementsByTagName
+	});
 
 	// DOM Element
 
@@ -319,7 +346,7 @@ var sys = require('sys'),
 				this.style[ style[0] ] = style[1];
 		}
 	};
-	
+
 	DOMElement.prototype = extend( new DOMNode(), {
 		get nodeName(){
 			return this.tagName.toUpperCase();
@@ -571,7 +598,13 @@ var sys = require('sys'),
 		if (node) {
 			if (!obj_nodes[node]) {
 			  var nodeType = node.nodeType();
-				obj_nodes[node] = (nodeType == ELEMENT_NODE || nodeType == FRAGMENT_NODE) ? new DOMElement(node) : new DOMNode(node);
+			  if (nodeType === ELEMENT_NODE) {
+  				obj_nodes[node] = new DOMElement(node);
+		    } else if (nodeType === FRAGMENT_NODE) {
+  				obj_nodes[node] = new DOMDocumentFragment(node);
+	      } else {
+  				obj_nodes[node] = new DOMNode(node);
+        }
 			}
 			return obj_nodes[node];
 		} else

@@ -932,6 +932,7 @@ function setup(window) {
 		div.innerHTML = "<input type='radio' name='radiotest' checked='checked'/>";
 
 		var fragment = document.createDocumentFragment();
+		sys.puts(div.firstChild);
 		fragment.appendChild( div.firstChild );
 
 		// WebKit doesn't clone checked state correctly in fragments

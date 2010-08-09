@@ -53,7 +53,7 @@ Save and load contexts
     webshell> GET http://twitter.com/users/coates.json
     HTTP 200 http://twitter.com/users/coates.json
     webshell> $_.saveContext("twitter-coates")
-    'Sean Coates'
+    Saved context: twitter-coates
     webshell> ^D
 
     sarcasm:~/src/webshell$ node shell.js

@@ -193,7 +193,13 @@ function WebShell(stream) {
   }
   
   function makeHeaders(url) {
-    var headers = {'Host': url.hostname, 'User-Agent': 'webshell (node.js)'};
+    var hostHeader = url.hostname;
+    if (url.protocol === 'https:' && url.port !== 443) {
+      hostHeader += ":" + url.port;
+    } else if (url.protocol === 'http:' && url.port !== 80) {
+      hostHeader += ":" + url.port;
+    }
+    var headers = {'Host': hostHeader, 'User-Agent': 'webshell (node.js)', 'Accept': '*/*'};
     if (url.auth) {
       headers['Authorization'] = 'Basic ' + base64.encode(url.auth);
     }

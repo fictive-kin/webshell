@@ -269,10 +269,6 @@ function WebShell(stream) {
   };
 }
 
-var reqErrorHandler = function (e) {
-  system.puts("Error in HTTP Request".red());
-};
-
 WebShell.prototype = {
   parseREPLKeyword: function(cmd) {
     if (oldParseREPLKeyword.call(this, cmd)) {
@@ -281,9 +277,7 @@ WebShell.prototype = {
     try {
       var split = cmd.split(' ');
       if (split.length === 2 && U.inArray(split[0], verbs)) {
-        eventEmitter.on('error', reqErrorHandler);
         doHttpReq(split[0], split[1]);
-        eventEmitter.removeListener('error', reqErrorHandler);
         return true;
       }
     } catch(e) {

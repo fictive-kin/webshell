@@ -57,6 +57,9 @@ function WebShell(stream) {
 
   function parseURL(urlStr) {
     var u = url.parse(urlStr);
+    if (!u.protocol) {
+      u = url.parse('http://'+urlStr);
+    }
     u.port = u.port || 80;
     u.pathname = u.pathname || '/';
     return u;
@@ -242,7 +245,7 @@ function WebShell(stream) {
     request.end();
     request.on('response', function (response) {
       if ($_.printResponse) {
-        formatStatus(response.statusCode, urlStr);
+        formatStatus(response.statusCode, u.href);
       }
       ctx.$_.status = response.statusCode;
 

@@ -22,7 +22,8 @@ var sys = require('sys'),
     cookies = require('cookies'),
     U = require('util'),
     wsrc = require('wsrc'),
-    wsreadline = require('wsreadline');
+    wsreadline = require('wsreadline'),
+    eventEmitter = require('events').EventEmitter;
 
 // NOTE: readline requires node.js patch; see http://gist.github.com/514195
 // Requested a pull from ry, and from the node mailing list 2010/08/08 -SC
@@ -103,8 +104,6 @@ function WebShell(stream) {
         completion.push(completer);
       });
       web_repl.rli.complete(true, completion);
-    } else {
-      sys.puts("\r\n" + web_repl.rli.line.substring(0, '$_.loadContext('.length));
     }
     return true;
   });
@@ -246,7 +245,7 @@ function WebShell(stream) {
         formatStatus(response.statusCode, urlStr);
       }
       ctx.$_.status = response.statusCode;
-      
+
       if ($_.printHeaders) {
         U.each(response.headers, printHeader);
       }
@@ -270,6 +269,10 @@ function WebShell(stream) {
   };
 }
 
+var reqErrorHandler = function (e) {
+  system.puts("Error in HTTP Request".red());
+};
+
 WebShell.prototype = {
   parseREPLKeyword: function(cmd) {
     if (oldParseREPLKeyword.call(this, cmd)) {
@@ -278,12 +281,15 @@ WebShell.prototype = {
     try {
       var split = cmd.split(' ');
       if (split.length === 2 && U.inArray(split[0], verbs)) {
+        eventEmitter.on('error', reqErrorHandler);
         doHttpReq(split[0], split[1]);
+        eventEmitter.removeListener('error', reqErrorHandler);
         return true;
       }
     } catch(e) {
     }
-    return false;
+    web_repl.displayPrompt();
+    return true;
   }
 };
 

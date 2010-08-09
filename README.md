@@ -9,9 +9,9 @@ This is best demonstrated.
 
 Setup
 -----
-To enable XML/HTML parsing:
-git submodule update --init
-make
+To enable xml parsing and rudimentary browser environment emulation:
+    git submodule update --init
+    make
 
 Simple HTTP requests
 --------------------
@@ -175,3 +175,13 @@ HTTP verbs
     'DELETE'
     webshell> ^D
 
+HTML parsing and DOM emulation
+------------------------------
+
+    ~/fictivekin/webshell$ node shell.js
+    webshell> GET http://fictivekin.com
+    HTTP 200 http://fictivekin.com
+    webshell> $_.document.getElementsByClassName('message').length
+    8
+    webshell> $_.document.getElementById('faq').innerHTML
+    '\n        <a href=\'\'>FAQ</a>\n        <h2>Frequently Asked Questions</h2>\n'

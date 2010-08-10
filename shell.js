@@ -226,6 +226,7 @@ function WebShell(stream) {
   function ResultHolder(verb, url) {
     this.verb = verb;
     this.url = url;
+    this.inspectStr = verb + " " + url;
   }
   var oldToString = ResultHolder.prototype.toString;
   ResultHolder.prototype = {
@@ -233,7 +234,9 @@ function WebShell(stream) {
       return "[Pending]";
     },
     inspect: function() {
-      return this.verb + " " + this.url;
+      var str = this.inspectStr;
+      this.inspectStr = "[Pending]";
+      return str;
     }
   };
   _.define(ResultHolder.prototype, 'finalize', function() {

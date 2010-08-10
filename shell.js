@@ -223,7 +223,8 @@ function WebShell(stream) {
     return headers;
   }
 
-  doHttpReq = function(verb, urlStr) {
+  doHttpReq = function(verb, urlStr, result) {
+    result = result || {};
     var u = parseURL(urlStr);
     var client = http.createClient(u.port, u.hostname, u.protocol === 'https:');
     var jsonHeaders = ['application/json', 'text/x-json'];
@@ -287,9 +288,18 @@ function WebShell(stream) {
         if (_.include(jsonHeaders, ctx.$_.headers['content-type'].split('; ')[0])) {
           ctx.$_.json = JSON.parse(body);
         }
+        
+        _.extend(result, {raw: ctx.$_.raw, headers: ctx.$_.headers, statusCode: ctx.$_.status, json: ctx.$_.json});
       });
     });
   };
+  
+  _.each(verbs, function (v) {
+    $_[v.toLowerCase()] = function(url, result) { 
+      doHttpReq(v, url, result);
+    };
+  });
+  
 }
 
 WebShell.prototype = {

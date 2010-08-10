@@ -295,8 +295,10 @@ function WebShell(stream) {
   };
   
   _.each(verbs, function (v) {
-    $_[v.toLowerCase()] = function(url, result) { 
-      doHttpReq(v, url, result);
+    $_[v.toLowerCase()] = function(url, result) {
+      var out = result || {};
+      doHttpReq(v, url, out);
+      return out;
     };
   });
   

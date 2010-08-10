@@ -568,6 +568,12 @@
     return typeof obj == 'undefined';
   };
 
+  _.define = function(prototype, property, value) {
+    if (!prototype.hasOwnProperty(property)) {
+      Object.defineProperty(prototype, property, { value:value, enumerable:false });
+    }
+  };
+
   // -------------------------- Utility Functions: ----------------------------
 
   // Run Underscore.js in noConflict mode, returning the '_' variable to its

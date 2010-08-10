@@ -223,8 +223,26 @@ function WebShell(stream) {
     return headers;
   }
 
-  doHttpReq = function(verb, urlStr, result) {
-    result = result || {};
+  function ResultHolder(verb, url) {
+    this.verb = verb;
+    this.url = url;
+  }
+  var oldToString = ResultHolder.prototype.toString;
+  ResultHolder.prototype = {
+    toString: function() {
+      return "[Pending]";
+    },
+    inspect: function() {
+      return this.verb + " " + this.url;
+    }
+  };
+  _.define(ResultHolder.prototype, 'finalize', function() {
+    _.define(this, 'toString', oldToString);
+    _.define(this, 'inspect', null);
+  });
+
+  doHttpReq = function(verb, urlStr) {
+    result = new ResultHolder(verb, urlStr);
     var u = parseURL(urlStr);
     var client = http.createClient(u.port, u.hostname, u.protocol === 'https:');
     var jsonHeaders = ['application/json', 'text/x-json'];
@@ -290,15 +308,15 @@ function WebShell(stream) {
         }
         
         _.extend(result, {raw: ctx.$_.raw, headers: ctx.$_.headers, statusCode: ctx.$_.status, json: ctx.$_.json});
+        result.finalize();
       });
     });
+    return result;
   };
   
   _.each(verbs, function (v) {
-    $_[v.toLowerCase()] = function(url, result) {
-      var out = result || {};
-      doHttpReq(v, url, out);
-      return out;
+    $_[v.toLowerCase()] = function(url) {
+      return doHttpReq(v, url);
     };
   });
   

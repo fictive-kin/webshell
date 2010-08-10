@@ -111,7 +111,7 @@ function WebShell(stream) {
       web_repl.rli.complete(true, completion);
     } else if (web_repl.rli.line.substring(0, 3) == '$_.') {
       var completion = [];
-      _.each($_, function (k) {
+      _.each($_, function (v, k) {
         var completer = '$_.' + k;
         if (typeof $_[k] === 'function') {
           completer += '(';

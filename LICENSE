@@ -8,6 +8,9 @@ are:
   - base64.js is copyright (C) 1999 Masanao Izumo <iz@onicos.co.jp>, and was
     adapted for node by Jed Schmidt.  It is free to distribute and modify.
 
+  - Underscore.js is (c) 2010 Jeremy Ashkenas, DocumentCloud Inc.
+    Underscore.js has an MIT license.
+
 webshell's license follows:
 
 Copyright 2010 Evan Haas and Sean Coates

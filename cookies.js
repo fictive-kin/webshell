@@ -1,9 +1,19 @@
 var fs = require('fs'),
-    U = require('util'),
+    _ = require('underscore')._,
     wsrc = require('wsrc');
 
 var rc = wsrc.get();
 var cookieJar = rc.cookies || {};
+
+
+function endsWith(needle, hayStack) {
+  return hayStack.match(needle + "$") == needle;
+};
+
+function startsWith(needle, hayStack) {
+  return hayStack.match("^" + needle) == needle;
+};
+
 
 function clear() {
   cookieJar = {};
@@ -22,18 +32,18 @@ function remove(site, key) {
 function set(site, key, value, options) {
   cookieJar[site] = cookieJar[site] || {};
   cookieJar[site][key] = {value: value};
-  U.extend(true, cookieJar[site][key], options);
+  _.extend(cookieJar[site][key], options);
 }
 
 function get(domain, key) {
   cookieJar = compactJar(false);
   for (var site in cookieJar) {
-    if (U.endsWith(site, domain)) {
+    if (endsWith(site, domain)) {
       var jar = cookieJar[site];
       if (!key) {
-        return U.extend(true, {}, jar);
+        return _.extend({}, jar);
       } else if (jar[key]) {
-        return U.extend(true, {}, jar[key]);
+        return _.extend({}, jar[key]);
       }
     }
   }
@@ -67,12 +77,12 @@ function parseCookie(string) {
 }
 
 function mergeCookies(domain, cookies, cookieJar) {
-  //filter out cookies with illegal domains
-  U.filter(cookies, function(cookie) {
-    return U.endsWith(cookie.domain, domain);
+  //only include cookies with legal domains
+  _.filter(cookies, function(cookie) {
+    return endsWith(cookie.domain, domain);
   });
   var now = new Date();
-  U.each(cookies, function(cookie) {
+  _.each(cookies, function(cookie) {
     var jar = cookieJar[cookie.domain] || {};
     jar[cookie.key] = cookie;
     if (cookie.expires && cookie.expires < now) {
@@ -84,11 +94,11 @@ function mergeCookies(domain, cookies, cookieJar) {
 
 function update(domain, header) {
   if (header) {
-    if (!U.isArray(header)) {
+    if (!_.isArray(header)) {
       header = [header];
     }
     var cookies = header.map(parseCookie);
-    U.each(cookies, function(cookie) {
+    _.each(cookies, function(cookie) {
       if (!cookie.domain) {
         cookie.domain = domain;
       }
@@ -99,7 +109,7 @@ function update(domain, header) {
 
 function compactJar(expireSessionCookies) {
   var now = new Date();
-  U.map(cookieJar, function(site) {
+  _.map(cookieJar, function(site) {
     for (var key in site) {
       if ((expireSessionCookies && !site[key].expires) || (site[key].expires && site[key].expires < now)) {
         delete site[key];
@@ -107,16 +117,16 @@ function compactJar(expireSessionCookies) {
     }
     return site;
   });
-  return U.extend(true, {}, cookieJar);
+  return _.extend({}, cookieJar);
 }
 
 function headerFor(url) {
   var kvs = [];
   for (var site in cookieJar) {
-    if (U.endsWith(site, url.hostname)) {
+    if (endsWith(site, url.hostname)) {
       var jar = cookieJar[site];
       for (var key in jar) {
-        if (U.startsWith(jar[key].path, url.pathname)) {
+        if (startsWith(jar[key].path, url.pathname)) {
           kvs.push(key + "=" + jar[key].value); 
         }
       }

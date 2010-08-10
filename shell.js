@@ -15,13 +15,13 @@ var sys = require('sys'),
     url = require('url'),
     fs = require('fs'),
     querystring = require('querystring'),
-    style = require('colored');
+    style = require('colored'),
     base64 = require('base64'),
     cookies = require('cookies'),
-    U = require('util'),
     wsrc = require('wsrc'),
     wsreadline = require('wsreadline'),
-    eventEmitter = require('events').EventEmitter;
+    eventEmitter = require('events').EventEmitter,
+    _ = require('underscore')._;
 
 // NOTE: readline requires node.js patch; see http://gist.github.com/514195
 // Requested a pull from ry, and from the node mailing list 2010/08/08 -SC
@@ -87,17 +87,17 @@ function WebShell(stream) {
       return true;
     }
     var split = web_repl.rli.line.split(' ');
-    if (U.inArray(split[0], verbs)) {
+    if (_.include(verbs, split[0])) {
       return web_repl.rli.completeHistory(true);
     } else if (web_repl.rli.line.substring(0, '$_.loadContext('.length) == '$_.loadContext(') {
       var completion = [];
-      U.each(wsrc.get().contexts, function (k) {
+      _.each(wsrc.get().contexts, function (k) {
         completion.push('$_.loadContext("' + k + '")');
       });
       web_repl.rli.complete(true, completion);
     } else if (web_repl.rli.line.substring(0, 3) == '$_.') {
       var completion = [];
-      U.each($_, function (k) {
+      _.each($_, function (k) {
         var completer = '$_.' + k;
         if (typeof $_[k] === 'function') {
           completer += '(';
@@ -124,10 +124,10 @@ function WebShell(stream) {
   };
   
   normalizeName = function(name) {
-    return U.map(name.split('-'), function(s) { return s[0].toUpperCase() + s.slice(1, s.length); }).join('-');
+    return _.map(name.split('-'), function(s) { return s[0].toUpperCase() + s.slice(1, s.length); }).join('-');
   };
   
-  printHeader = function(name, value) {
+  printHeader = function(value, name) {
     sys.puts(normalizeName(name) + ": " + value);
   };
   
@@ -159,7 +159,7 @@ function WebShell(stream) {
 
   ctx.$_.saveContext = function(name) {
     var obj = {};
-    U.each(ctx.$_, function(k, v) {
+    _.each(ctx.$_, function(v, k) {
       if (typeof(v) !== 'function') {
         obj[k] = v;
       }
@@ -180,7 +180,7 @@ function WebShell(stream) {
   ctx.$_.loadContext = function(name) {
     var rc = wsrc.get();
     if (rc.contexts[name]) {
-      U.each(rc.contexts[name], function (k, v) {
+      _.each(rc.contexts[name], function (v, k) {
         ctx.$_[k] = v;
       });
       $_.cookies.__set_raw__(ctx.$_.__cookieJar);
@@ -256,7 +256,7 @@ function WebShell(stream) {
       ctx.$_.status = response.statusCode;
 
       if ($_.printHeaders) {
-        U.each(response.headers, printHeader);
+        _.each(response.headers, printHeader);
       }
       ctx.$_.headers = response.headers;
       if ($_.useCookies) {
@@ -270,7 +270,7 @@ function WebShell(stream) {
       response.on('end', function() {
         web_repl.displayPrompt();
         ctx.$_.raw = body;
-        if (U.inArray(ctx.$_.headers['content-type'].split('; ')[0], jsonHeaders)) {
+        if (_.include(jsonHeaders, ctx.$_.headers['content-type'].split('; ')[0])) {
           ctx.$_.json = JSON.parse(body);
         }
       });
@@ -286,7 +286,7 @@ WebShell.prototype = {
     try {
       if (cmd) {
         var split = cmd.split(' ');
-        if (split.length === 2 && U.inArray(split[0], verbs)) {
+        if (split.length === 2 && _.include(verbs, split[0])) {
           doHttpReq(split[0], split[1]);
           return true;
         }

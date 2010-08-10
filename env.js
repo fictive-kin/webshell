@@ -7,7 +7,7 @@
 var sys = require('sys'),
     http = require('http'),
     url = require('url'),
-    U = require('util');
+    _ = require('underscore')._;
 var libxml;
 try {
   libxml = require('libxmljs/libxmljs');

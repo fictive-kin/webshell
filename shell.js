@@ -51,6 +51,19 @@ var $_ = {
 var verbs = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD', 'TRACE', 'CONNECT'];
 
 function WebShell(stream) {
+  function patchHTTP(http) {
+    var oldAddHeader = http.IncomingMessage.prototype._addHeaderLine;
+    http.IncomingMessage.prototype._addHeaderLine = function(field, value) {
+      if (field === 'set-cookie') {
+        this.headers['set-cookie'] = this.headers['set-cookie'] || [];
+        this.headers['set-cookie'].push(value);
+        return;
+      }
+      return oldAddHeader.call(this, field, value);
+    };
+  }
+
+
   for(var f in style) {
     String.prototype[f] = style[f];
   }
@@ -65,6 +78,7 @@ function WebShell(stream) {
     return u;
   }
 
+  patchHTTP(http);
   oldParseREPLKeyword = repl.REPLServer.prototype.parseREPLKeyword;
   web_repl = new repl.REPLServer("webshell> ", stream);
   process.on('exit', function () {

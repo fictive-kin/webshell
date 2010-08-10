@@ -113,7 +113,7 @@ function WebShell(stream) {
       var completion = [];
       _.each($_, function (v, k) {
         var completer = '$_.' + k;
-        if (typeof $_[k] === 'function') {
+        if (_.isFunction($_[k])) {
           completer += '(';
         }
         completion.push(completer);
@@ -174,7 +174,7 @@ function WebShell(stream) {
   ctx.$_.saveContext = function(name) {
     var obj = {};
     _.each(ctx.$_, function(v, k) {
-      if (typeof(v) !== 'function') {
+      if (!_.isFunction(v)) {
         obj[k] = v;
       }
     });

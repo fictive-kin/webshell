@@ -15,7 +15,7 @@ var sys = require('sys'),
     url = require('url'),
     fs = require('fs'),
     querystring = require('querystring'),
-    style = require('colored'),
+    style = require('colors').stylize,
     base64 = require('base64'),
     cookies = require('cookies'),
     wsrc = require('wsrc'),
@@ -63,10 +63,6 @@ function WebShell(stream) {
     };
   }
 
-
-  for(var f in style) {
-    String.prototype[f] = style[f];
-  }
 
   function parseURL(urlStr) {
     var u = url.parse(urlStr);
@@ -129,11 +125,11 @@ function WebShell(stream) {
   formatStatus = function(code, url) {
     var msg = "HTTP " + code + " " + url.white();
     if (200 <= code && code < 300) {
-      console.log(msg.green());
+      console.log(stylize(msg, 'green'));
     } else if (300 <= code && code < 400) {
-      console.log(msg.yellow());
+      console.log(stylize(msg, 'yellow'));
     } else if (400 <= code && code < 600) {
-      console.log(msg.red());
+      console.log(stylize(msg, 'red'));
     }
   };
   
@@ -166,7 +162,7 @@ function WebShell(stream) {
       }
       doHttpReq($_.previousVerb, location);
     } else {
-      sys.puts("No previous request!".red());
+      sys.puts(stylize("No previous request!", 'red'));
     }
   };
   ctx.$_.follow = doRedirect;
@@ -201,7 +197,7 @@ function WebShell(stream) {
       delete ctx.$_['__cookieJar'];
       sys.puts("Loaded context: " + name);
     } else {
-      sys.puts(("Could not load context: " + name).red());
+      sys.puts(stylize("Could not load context: " + name, 'red'));
     }
 
   }
@@ -265,7 +261,7 @@ function WebShell(stream) {
         try {
           content = fs.readFileSync($_.requestData);
         } catch (e) {
-          sys.puts("Set $_.requestData to the filename to PUT".red());
+          sys.puts(stylize("Set $_.requestData to the filename to PUT", 'red'));
           web_repl.displayPrompt();
           return false;
         }
@@ -348,7 +344,7 @@ WebShell.prototype = {
 var shell = new WebShell();
 
 process.on('uncaughtException', function (err) {
-  console.log(('Caught exception: ' + err).red());
+  console.log(stylize('Caught exception: ' + err, 'red'));
   shell.rescue();
 });
 

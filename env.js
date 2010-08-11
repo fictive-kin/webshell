@@ -17,15 +17,6 @@ try {
 }
 
 (function(){
-  /* eventually use this for custom printing of DOM elements when eval'ed in REPL */
-  /* thanks elliottcable on #node.js */
-  function define(prototype, property, value) {
-    var propertyAlreadyExists = prototype.hasOwnProperty(property);
-    if (!propertyAlreadyExists) {
-      Object.defineProperty(prototype, property, { value:value, enumerable:false });
-    }
-  }
-  
   // The window Object
   var window = {};
 

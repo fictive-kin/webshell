@@ -2,9 +2,6 @@ This license applies to all parts of webshell that are not externally
 maintained libraries.  The externally maintained libraries used by webshell
 are:
 
-  - portions of util.js are adapted from jQuery 1.4.2, which is copyrighted 
-    by John Resig.  jQuery has an MIT license.
-
   - base64.js is copyright (C) 1999 Masanao Izumo <iz@onicos.co.jp>, and was
     adapted for node by Jed Schmidt.  It is free to distribute and modify.
 

@@ -42,6 +42,21 @@ Simple HTTP requests
     '<!doctype html><html><head><meta http-equiv="conte'
     webshell> ^D
 
+Store HTTP response
+-------------------
+
+    webshell> result = $_.get('http://fictivekin.com')
+    GET http://fictivekin.com
+    webshell> HTTP 200 http://fictivekin.com
+    webshell> result2 = $_.get('http://www.google.com')
+    GET http://www.google.com
+    webshell> HTTP 200 http://www.google.com
+    webshell> result.headers['content-type']
+    'text/html'
+    webshell> result2.headers['content-type']
+    'text/html; charset=ISO-8859-1'
+    
+    
 JSON processing
 ---------------
 
@@ -75,6 +90,8 @@ HTTP auth
     sarcasm:~/src/webshell$ node shell.js
     webshell> GET http://coates:notmypassword@twitter.com/users/coates.json
     HTTP 401 http://coates:notmypassword@twitter.com/users/coates.json
+    webshell> GET http://coates:mypassword@twitter.com/users/coates.json
+    HTTP 200 http://coates:mypassword@twitter.com/users/coates.json
     webshell> ^D
 
 Cookies

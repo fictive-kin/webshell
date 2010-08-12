@@ -11,6 +11,7 @@ Setup
 To enable xml parsing and rudimentary browser environment emulation:
     git submodule update --init
     make
+You'll need SCons (http://www.scons.org/) to `make`.
 
 NOTE: a recent version of Node.js is required (for improved readline-like
 behaviour). It's best to build your own version.

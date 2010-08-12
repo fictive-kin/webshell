@@ -172,7 +172,12 @@ try {
 			return new DOMNodeList(_getElementsByTagName(this._dom, name.toLowerCase()));
 		},
 		getElementsByClassName: function(name){
-	    return new DOMNodeList(this._dom.find(".//*[@class='" + name + "']"));
+		  var elems = _getElementsByTagName(this._dom, "*");
+	    return new DOMNodeList(_.filter(elems, function(elem) {
+	      var classAttr = elem.attr('class');
+	      var className = classAttr ? classAttr.value() : "";
+	      return _.include(className.split(' '), name); 
+	    }));
 	  },
 		getElementById: function(id){
 		  var elem = this._dom.get("//*[@id='" + id + "']");

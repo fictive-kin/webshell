@@ -15,7 +15,7 @@ var sys = require('sys'),
     url = require('url'),
     fs = require('fs'),
     querystring = require('querystring'),
-    style = require('colors').stylize,
+    stylize = require('colors').stylize,
     base64 = require('base64'),
     cookies = require('cookies'),
     wsrc = require('wsrc'),
@@ -125,7 +125,7 @@ function WebShell(stream) {
 
   repl.REPLServer.prototype.parseREPLKeyword = this.parseREPLKeyword;
   formatStatus = function(code, url) {
-    var msg = "HTTP " + code + " " + url.white();
+    var msg = "HTTP " + code + " " + stylize(url, 'white');
     if (200 <= code && code < 300) {
       console.log(stylize(msg, 'green'));
     } else if (300 <= code && code < 400) {

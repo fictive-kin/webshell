@@ -6242,6 +6242,4 @@ function setup(window) {
 	})(window);
 }
 
-exports.$ = function(selector, context) {
-  
-};
+exports.setup = setup;

@@ -51,7 +51,7 @@ Object.defineProperty(String.prototype, 'rainbow', {
   }
 });
 
-exports.stylize = function(str, style) {
+function stylize(str, style) {
   var styles = {
   //styles
   'bold' : [1, 22],
@@ -73,3 +73,5 @@ exports.stylize = function(str, style) {
   return '\033[' + styles[style][0] + 'm' + str +
          '\033[' + styles[style][1] + 'm';
 };
+
+exports.stylize = stylize;

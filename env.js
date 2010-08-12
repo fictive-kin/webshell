@@ -153,6 +153,9 @@ try {
 	}
 	
 	DOMDocument.prototype = {
+	  get nodeType(){
+	    return this._dom.nodeType();
+    },
 	  get documentElement(){
 	    return makeNode(this._dom.root());
     },

@@ -2650,7 +2650,7 @@ function setup(window) {
 		results = results || [];
 		var origContext = context = context || document;
 
-		if ( context.nodeType !== 1 && context.nodeType !== 9 ) {
+		if ( context.nodeType !== 1 && context.nodeType !== 9 && context.nodeType !== 13 ) {
 			return [];
 		}
 	

@@ -207,3 +207,18 @@ HTML parsing and DOM emulation
     8
     webshell> $_.document.getElementById('faq').innerHTML
     '\n        <a href=\'\'>FAQ</a>\n        <h2>Frequently Asked Questions</h2>\n'
+
+jQuery support
+--------------
+
+    ~/fictivekin/webshell$ node shell.js
+    webshell> sys = require('sys')
+    webshell> GET http://fictivekin.com
+    HTTP 200 http://fictivekin.com
+    webshell> $('img').length
+    4
+    webshell> $('img').each(function() { sys.puts($(this).attr('src'));})
+    images/fk2_no.png
+    images/dot1.png
+    images/dot2.png
+    images/dot3.png

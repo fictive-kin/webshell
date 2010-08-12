@@ -843,7 +843,7 @@ function setup(window) {
 		if ( !all || !all.length || !a ) {
 			return;
 		}
-
+		
 		jQuery.support = {
 			// IE strips leading whitespace when .innerHTML is used
 			leadingWhitespace: div.firstChild.nodeType === 3,

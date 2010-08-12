@@ -166,29 +166,14 @@ try {
 			return new DOMNodeList(_getElementsByTagName(this._dom, name.toLowerCase()));
 		},
 		getElementsByClassName: function(name){
-			var elems = _getElementsByTagName(this._dom, "*");
-			var results = [];
-			for ( var i = 0, l = elems.length; i < l; i++ ) {
-				var elem = elems[i];
-				var attr = elem.attr('class');
-				if (attr && attr.value() === name) {
-				  results.push(elem);
-			  }
-		  }
-			
-			return new DOMNodeList(results);
+	    return new DOMNodeList(this._dom.find("//*[@class='" + name + "']"));
 	  },
 		getElementById: function(id){
-			var elems = _getElementsByTagName(this._dom, "*");
-			for ( var i = 0, l = elems.length; i < l; i++ ) {
-				var elem = elems[i];
-				var attr = elem.attr('id');
-				if (attr && attr.value() === id) {
-				  return makeNode(elem);
-			  }
-		  }
-			
-			return null;
+		  var elem = this._dom.get("//*[@id='" + id + "']");
+		  if (elem) {
+		    return makeNode(elem);
+	    }
+	    return null;
 		},
 		get body(){
 			return this.getElementsByTagName("body")[0];
@@ -419,8 +404,8 @@ try {
 			var nodes = wrap.childNodes;
 			while (this.firstChild)
 				this.removeChild(this.firstChild);
-			
-			for ( var i = 0; i < nodes.length; i++ ){ 
+				
+			for ( var i = 0; i < nodes.length; i++ ){
 				this.ownerDocument.importNode(nodes[i])
 				this.appendChild(nodes[i]);
 			}
@@ -773,5 +758,6 @@ try {
 	};
 	
 	exports.DOMDocument = DOMDocument;
+	exports.window = window;
 	
 })();

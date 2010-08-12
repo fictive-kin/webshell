@@ -21,7 +21,8 @@ var sys = require('sys'),
     wsrc = require('wsrc'),
     wsreadline = require('wsreadline'),
     _ = require('underscore')._,
-    env = require('env');
+    env = require('env'),
+    jquery = require('jquery');
 
 // NOTE: readline requires node.js patch; see http://gist.github.com/514195
 // Requested a pull from ry, and from the node mailing list 2010/08/08 -SC
@@ -124,6 +125,7 @@ function WebShell(stream) {
   });
 
   var ctx = web_repl.context;
+  ctx.window = env.window;
 
   repl.REPLServer.prototype.parseREPLKeyword = this.parseREPLKeyword;
   formatStatus = function(code, url) {
@@ -308,6 +310,9 @@ function WebShell(stream) {
         }
         if (_.include(xmlHeaders, ctx.$_.headers['content-type'].split('; ')[0])) {
           ctx.$_.document = new env.DOMDocument(body);
+          ctx.window.document = ctx.$_.document;
+          jquery.setup(ctx.window);
+          
         }
 
         _.extend(result, {raw: ctx.$_.raw, headers: ctx.$_.headers, statusCode: ctx.$_.status, json: ctx.$_.json});

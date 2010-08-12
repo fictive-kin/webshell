@@ -6,12 +6,17 @@ by Evan Haas and Sean Coates
 Includes tab completion, history, context persistence and cookies.
 This is best demonstrated.
 
-
 Setup
 -----
 To enable xml parsing and rudimentary browser environment emulation:
     git submodule update --init
     make
+
+NOTE: a recent version of Node.js is required (for improved readline-like
+behaviour). It's best to build your own version.
+
+See http://github.com/ry/node
+You need a checkout later than 7068912fbbe53c2f9bab6c6ab13bd6a6d31e2ede
 
 Simple HTTP requests
 --------------------
@@ -42,6 +47,21 @@ Simple HTTP requests
     '<!doctype html><html><head><meta http-equiv="conte'
     webshell> ^D
 
+Store HTTP response
+-------------------
+
+    webshell> result = $_.get('http://fictivekin.com')
+    GET http://fictivekin.com
+    webshell> HTTP 200 http://fictivekin.com
+    webshell> result2 = $_.get('http://www.google.com')
+    GET http://www.google.com
+    webshell> HTTP 200 http://www.google.com
+    webshell> result.headers['content-type']
+    'text/html'
+    webshell> result2.headers['content-type']
+    'text/html; charset=ISO-8859-1'
+    
+    
 JSON processing
 ---------------
 
@@ -75,6 +95,8 @@ HTTP auth
     sarcasm:~/src/webshell$ node shell.js
     webshell> GET http://coates:notmypassword@twitter.com/users/coates.json
     HTTP 401 http://coates:notmypassword@twitter.com/users/coates.json
+    webshell> GET http://coates:mypassword@twitter.com/users/coates.json
+    HTTP 200 http://coates:mypassword@twitter.com/users/coates.json
     webshell> ^D
 
 Cookies

@@ -2,9 +2,15 @@ This license applies to all parts of webshell that are not externally
 maintained libraries.  The externally maintained libraries used by webshell
 are:
 
-  - portions of util.js are adapted from jQuery 1.4.2, which is copyrighted 
-    by John Resig.  jQuery has an MIT license.
+  - env.js is Copyright 2007 John Resig
+    env.js has an MIT license.
 
+  - jQuery is Copyright 2010 John Resig
+  - jQuery has an MIT license.
+
+  - Sizzle.js is Copyright 2010, The Dojo Foundation
+  - Sizzle.js has an MIT license
+  
   - base64.js is copyright (C) 1999 Masanao Izumo <iz@onicos.co.jp>, and was
     adapted for node by Jed Schmidt.  It is free to distribute and modify.
 
@@ -14,6 +20,10 @@ are:
   - libxml2 has an MIT license
 
   - libxmljs is copyright (C) 2009, Squish Tech, LLC.  libxmljs has an MIT license.
+
+  - colors.js is Copyright (c) 2010 Alexis Sellier (cloudhead) , Marak Squires
+  - colors.js has an MIT license.
+
 
 webshell's license follows:
 

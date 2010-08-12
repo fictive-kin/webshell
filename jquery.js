@@ -2694,7 +2694,7 @@ function setup(window) {
 		} else {
 			// Take a shortcut and set the context if the root selector is an ID
 			// (but not if it'll be faster if the inner selector is an ID)
-			if ( !seed && parts.length > 1 && context.nodeType === 9 && !contextXML &&
+			if ( !seed && parts.length > 1 && (context.nodeType === 9 || context.nodeType === 13) && !contextXML &&
 					Expr.match.ID.test(parts[0]) && !Expr.match.ID.test(parts[parts.length - 1]) ) {
 				var ret = Sizzle.find( parts.shift(), context, contextXML );
 				context = ret.expr ? Sizzle.filter( ret.expr, ret.set )[0] : ret.set[0];
@@ -3527,7 +3527,7 @@ function setup(window) {
 
 				// Only use querySelectorAll on non-XML documents
 				// (ID selectors don't work in non-HTML documents)
-				if ( !seed && context.nodeType === 9 && !isXML(context) ) {
+				if ( !seed && (context.nodeType === 9 || context.nodeType === 13) && !isXML(context) ) {
 					try {
 						return makeArray( context.querySelectorAll(query), extra );
 					} catch(e){}
@@ -3925,7 +3925,7 @@ function setup(window) {
 	
 		dir: function( elem, dir, until ) {
 			var matched = [], cur = elem[dir];
-			while ( cur && cur.nodeType !== 9 && (until === undefined || cur.nodeType !== 1 || !jQuery( cur ).is( until )) ) {
+			while ( cur && cur.nodeType !== 9 && cur.nodeType !== 13 && (until === undefined || cur.nodeType !== 1 || !jQuery( cur ).is( until )) ) {
 				if ( cur.nodeType === 1 ) {
 					matched.push( cur );
 				}
@@ -6175,7 +6175,7 @@ function setup(window) {
 	function getWindow( elem ) {
 		return ("scrollTo" in elem && elem.document) ?
 			elem :
-			elem.nodeType === 9 ?
+			(elem.nodeType === 9 || elem.nodeType === 13) ?
 				elem.defaultView || elem.parentWindow :
 				false;
 	}
@@ -6218,7 +6218,7 @@ function setup(window) {
 				elem.document.body[ "client" + name ] :
 
 				// Get document width or height
-				(elem.nodeType === 9) ? // is it a document
+				(elem.nodeType === 9 || elem.nodeType === 13) ? // is it a document
 					// Either scroll[Width/Height] or offset[Width/Height], whichever is greater
 					Math.max(
 						elem.documentElement["client" + name],
@@ -6242,4 +6242,6 @@ function setup(window) {
 	})(window);
 }
 
-exports.setup = setup;
+exports.$ = function(selector, context) {
+  
+};

@@ -16,7 +16,6 @@ var sys = require('sys'),
     fs = require('fs'),
     querystring = require('querystring'),
     stylize = require('colors').stylize,
-    base64 = require('base64'),
     cookies = require('cookies'),
     wsrc = require('wsrc'),
     wsreadline = require('wsreadline'),
@@ -199,7 +198,10 @@ function WebShell(stream) {
     } else {
       sys.puts(stylize("Could not load context: " + name, 'red'));
     }
-
+  }
+  
+  function base64Encode(str) {
+    return (new Buffer(str, 'ascii')).toString('base64');
   }
   
   function makeHeaders(url) {
@@ -211,7 +213,7 @@ function WebShell(stream) {
     }
     var headers = {'Host': hostHeader, 'User-Agent': 'webshell (node.js)', 'Accept': '*/*'};
     if (url.auth) {
-      headers['Authorization'] = 'Basic ' + base64.encode(url.auth);
+      headers['Authorization'] = 'Basic ' + base64Encode(url.auth);
     }
     if ($_.useCookies) {
       headers['Cookie'] = cookies.headerFor(url);

@@ -3552,7 +3552,6 @@ function setup(window) {
 		// Opera can't find a second classname (in 9.6)
 		// Also, make sure that getElementsByClassName actually exists
 		if ( !div.getElementsByClassName || div.getElementsByClassName("e").length === 0 ) {
-		  asd
 			return;
 		}
 

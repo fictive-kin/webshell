@@ -311,6 +311,7 @@ function WebShell(stream) {
         if (_.include(xmlHeaders, ctx.$_.headers['content-type'].split('; ')[0])) {
           ctx.$_.document = new env.DOMDocument(body);
           ctx.window.document = ctx.$_.document;
+          ctx.window.location = u;
           jquery.setup(ctx.window);
           
         }
@@ -359,6 +360,7 @@ var shell = new WebShell();
 
 process.on('uncaughtException', function (err) {
   console.log(('Caught exception: ' + err).red());
+  sys.puts(err.stack);
   shell.rescue();
 });
 

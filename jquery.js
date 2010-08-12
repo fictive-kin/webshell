@@ -936,7 +936,7 @@ function setup(window) {
 
 		// WebKit doesn't clone checked state correctly in fragments
 		jQuery.support.checkClone = fragment.cloneNode(true).cloneNode(true).lastChild.checked;
-asd
+
 		// Figure out if the W3C box model works as expected
 		// document.body must exist before we can do this
 		jQuery(function() {
@@ -3552,6 +3552,7 @@ asd
 		// Opera can't find a second classname (in 9.6)
 		// Also, make sure that getElementsByClassName actually exists
 		if ( !div.getElementsByClassName || div.getElementsByClassName("e").length === 0 ) {
+		  asd
 			return;
 		}
 
@@ -4934,7 +4935,7 @@ asd
 		},
 
 		ajaxSettings: {
-			url: location.href,
+			url: window.location.href,
 			global: true,
 			type: "GET",
 			contentType: "application/x-www-form-urlencoded",
@@ -5057,7 +5058,7 @@ asd
 
 			// Matches an absolute URL, and saves the domain
 			var parts = rurl.exec( s.url ),
-				remote = parts && (parts[1] && parts[1] !== location.protocol || parts[2] !== location.host);
+				remote = parts && (parts[1] && parts[1] !== window.location.protocol || parts[2] !== window.location.host);
 
 			// If we're requesting a remote document
 			// and trying to load JSON or Script with a GET
@@ -5319,7 +5320,7 @@ asd
 		httpSuccess: function( xhr ) {
 			try {
 				// IE error sometimes returns 1223 when it should be 204 so treat it as success, see #1450
-				return !xhr.status && location.protocol === "file:" ||
+				return !xhr.status && window.location.protocol === "file:" ||
 					// Opera returns 0 when status is 304
 					( xhr.status >= 200 && xhr.status < 300 ) ||
 					xhr.status === 304 || xhr.status === 1223 || xhr.status === 0;

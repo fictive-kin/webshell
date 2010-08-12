@@ -149,7 +149,7 @@ try {
 	window.DOMDocument=DOMDocument;
 	
 	function _getElementsByTagName(dom, name) {
-		return dom.find('//'+name);
+		return dom.find('.//'+name);
 	}
 	
 	DOMDocument.prototype = {
@@ -159,6 +159,9 @@ try {
 		createTextNode: function(text){
 			return makeNode(this._dom.createTextNode(text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")));
 		},
+		createComment: function(text){
+			return makeNode(this._dom.createComment(text));
+		},
 		createElement: function(name){
 			return makeNode(new libxml.Element(this._dom, name.toLowerCase()));
 		},
@@ -166,7 +169,7 @@ try {
 			return new DOMNodeList(_getElementsByTagName(this._dom, name.toLowerCase()));
 		},
 		getElementsByClassName: function(name){
-	    return new DOMNodeList(this._dom.find("//*[@class='" + name + "']"));
+	    return new DOMNodeList(this._dom.find(".//*[@class='" + name + "']"));
 	  },
 		getElementById: function(id){
 		  var elem = this._dom.get("//*[@id='" + id + "']");
@@ -276,7 +279,7 @@ try {
 		get nodeValue(){
 			if (this.nodeType === 1) {
 				return null;
-			} else if (this.nodeType === 3) {
+			} else if (this.nodeType === 3 || this.nodeType === 8) {
 				return this._dom.toString();
 			}
 		},
@@ -333,7 +336,8 @@ try {
 			return node;
 		},
 
-		getElementsByTagName: DOMDocument.prototype.getElementsByTagName
+		getElementsByTagName: DOMDocument.prototype.getElementsByTagName,
+		getElementsByClassName: DOMDocument.prototype.getElementsByClassName
 	});
 
 	// DOM Element
@@ -402,9 +406,9 @@ try {
 			var wrap = docElt.body.firstChild;
 			
 			var nodes = wrap.childNodes;
-			while (this.firstChild)
+			while (this.firstChild) {
 				this.removeChild(this.firstChild);
-				
+			}
 			for ( var i = 0; i < nodes.length; i++ ){
 				this.ownerDocument.importNode(nodes[i])
 				this.appendChild(nodes[i]);
@@ -532,6 +536,7 @@ try {
 		},
 
 		getElementsByTagName: DOMDocument.prototype.getElementsByTagName,
+		getElementsByClassName: DOMDocument.prototype.getElementsByClassName,
 		
 		addEventListener: window.addEventListener,
 		removeEventListener: window.removeEventListener,
@@ -604,7 +609,7 @@ try {
 		var ELEMENT_NODE = 1;
 		var FRAGMENT_NODE = 11;
 		if (node) {
-			if (!obj_nodes[node]) {
+/*			if (!obj_nodes[node]) {
 			  var nodeType = node.nodeType();
 			  if (nodeType === ELEMENT_NODE) {
   				obj_nodes[node] = new DOMElement(node);
@@ -614,7 +619,19 @@ try {
   				obj_nodes[node] = new DOMNode(node);
         }
 			}
-			return obj_nodes[node];
+			return obj_nodes[node];*/
+			if (!obj_nodes[node]) {
+    			  var nodeType = node.nodeType();
+    			  if (nodeType === ELEMENT_NODE) {
+      				return new DOMElement(node);
+    		    } else if (nodeType === FRAGMENT_NODE) {
+      				return new DOMDocumentFragment(node);
+    	      } else {
+      				return new DOMNode(node);
+            }
+          } else {
+            return obj_nodes[node];
+          }
 		} else
 			return null;
 	}

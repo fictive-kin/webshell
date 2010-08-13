@@ -5,7 +5,6 @@
 /* response data will be put into the global variable $_ */
 /* raw response data: $_.raw */
 /* headers: $_.headers */
-/* to follow redirects - use the command `follow!' */
 
 require.paths.unshift(__dirname + '/lib');
 require.paths.unshift(__dirname);

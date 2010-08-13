@@ -81,9 +81,9 @@ function WebShell(stream) {
   }
 
 
-  function parseURL(urlStr) {
+  function parseURL(urlStr, protocolHelp) {
     var u = url.parse(urlStr);
-    if (!u.protocol) {
+    if (protocolHelp && !u.protocol) {
       u = url.parse('http://'+urlStr);
     }
     u.port = u.port || (u.protocol === 'https:' ? 443 : 80);
@@ -163,7 +163,7 @@ function WebShell(stream) {
   doRedirect = function() {
     var location = $_.headers.location;
     if (location) {
-      var locationUrl = parseURL(location);
+      var locationUrl = parseURL(location, false);
       if (!locationUrl.protocol) {
         var prevUrl = parseURL($_.previousUrl);
         // a relative URL, auto-populate with previous URL's info

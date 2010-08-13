@@ -22,9 +22,6 @@ var sys = require('sys'),
     eventEmitter = require('events').EventEmitter,
     _ = require('underscore')._;
 
-// NOTE: readline requires node.js patch; see http://gist.github.com/514195
-// Requested a pull from ry, and from the node mailing list 2010/08/08 -SC
-
 var $_ = {
   printHeaders: false,
   printResponse: true,

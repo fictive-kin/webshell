@@ -45,8 +45,8 @@ function loadContext(name, $_) {
   var rc = getRC();
   if (rc.contexts[name]) {
     _.each(rc.contexts[name], function (v, k) {
-        $_[k] = v;
-        });
+      $_[k] = v;
+    });
     $_.cookies.__set_raw__($_.__cookieJar);
     delete $_['__cookieJar'];
     sys.puts("Loaded context: " + name);

@@ -92,13 +92,12 @@ function WebShell(stream) {
 
   web_repl = new repl.REPLServer("webshell> ", stream);
   process.on('exit', function () {
-    var history = web_repl.rli.history;
     if (web_repl.rli._hardClosed) {
       var rc = wsrc.get();
     } else {
       var rc = wsrc.saveContext('_previous', $_);
     }
-    rc.history = history.slice(-100);
+    rc.history = web_repl.rli.history;
     wsrc.write(rc, cookies);
   });
   web_repl.rli.history = wsrc.get().history;

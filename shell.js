@@ -10,6 +10,7 @@ require.paths.unshift(__dirname + '/deps');
 require.paths.unshift(__dirname);
 var sys = require('sys'),
     repl = require('repl'),
+    wsrepl = require('wsrepl'),
     http = require('http'),
     url = require('url'),
     fs = require('fs'),
@@ -41,14 +42,6 @@ var $_ = {
     return false;
   },
   cookies: cookies
-};
-
-var suppressPrompt = false;
-repl.REPLServer.prototype.displayPrompt = function () {
-  if (!suppressPrompt) {
-    this.rli.setPrompt(this.buffered_cmd.length ? '...   ' : this.prompt);
-    this.rli.prompt();
-  }
 };
 
 var verbs = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD', 'TRACE', 'CONNECT'];
@@ -232,7 +225,7 @@ function WebShell(stream) {
   });
 
   doHttpReq = function(verb, urlStr) {
-    suppressPrompt = true;
+    web_repl.suppressPrompt = true;
     result = new ResultHolder(verb, urlStr);
     var u = parseURL(urlStr);
     var client = http.createClient(u.port, u.hostname, u.protocol === 'https:');
@@ -259,8 +252,7 @@ function WebShell(stream) {
           content = fs.readFileSync($_.requestData);
         } catch (e) {
           sys.puts(stylize("Set $_.requestData to the filename to PUT", 'red'));
-          suppressPrompt = false;
-          web_repl.displayPrompt();
+          web_repl.displayPrompt(true);
           return false;
         }
         if (!headers['Content-type']) {
@@ -297,8 +289,7 @@ function WebShell(stream) {
         body += chunk;
       });
       response.on('end', function() {
-        suppressPrompt = false;
-        web_repl.displayPrompt();
+        web_repl.displayPrompt(true);
         $_.raw = body;
         $_.document = $_.json = null;
         if (httpSuccess(response.statusCode)) {
@@ -337,15 +328,13 @@ WebShell.prototype = {
       }
     } catch(e) {
       console.log(e.stack);
-      suppressPrompt = false;
-      web_repl.displayPrompt();
+      web_repl.displayPrompt(true);
       return true;
     }
     return false;
   },
   rescue: function() {
-    suppressPrompt = false;
-    web_repl.displayPrompt();
+    web_repl.displayPrompt(true);
   }
 };
 

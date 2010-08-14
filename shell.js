@@ -258,7 +258,11 @@ function WebShell(stream) {
         }
         break;
     }
-    var request = client.request(verb, u.pathname, headers);
+    var path = u.pathname;
+    if (u.search) {
+      path += u.search;
+    }
+    var request = client.request(verb, path, headers);
     if (content) {
       headers['Content-length'] = content.length;
       request.write(content);

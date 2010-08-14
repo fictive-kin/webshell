@@ -5,7 +5,6 @@
 /* response data will be put into the global variable $_ */
 /* raw response data: $_.raw */
 /* headers: $_.headers */
-/* to follow redirects - use the command `follow!' */
 
 require.paths.unshift(__dirname + '/deps');
 require.paths.unshift(__dirname);
@@ -47,6 +46,22 @@ var $_ = {
 var verbs = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD', 'TRACE', 'CONNECT'];
 
 function WebShell(stream) {
+  function httpSuccess(status) {
+    return 200 <= status && status < 300;
+  }
+  
+  function httpRedirection(status) {
+    return 300 <= status && status < 400;
+  }
+  
+  function httpClientError(status) {
+    return 400 <= status && status < 500;
+  }
+  
+  function httpServerError(status) {
+    return 500 <= status && status < 600;
+  }
+  
   function patchHTTP(http) {
     var oldAddHeader = http.IncomingMessage.prototype._addHeaderLine;
     http.IncomingMessage.prototype._addHeaderLine = function(field, value) {
@@ -60,9 +75,9 @@ function WebShell(stream) {
   }
 
 
-  function parseURL(urlStr) {
+  function parseURL(urlStr, protocolHelp) {
     var u = url.parse(urlStr);
-    if (!u.protocol) {
+    if (protocolHelp && !u.protocol) {
       u = url.parse('http://'+urlStr);
     }
     u.port = u.port || (u.protocol === 'https:' ? 443 : 80);
@@ -122,15 +137,15 @@ function WebShell(stream) {
   });
 
   var ctx = web_repl.context;
-
+  
   repl.REPLServer.prototype.parseREPLKeyword = this.parseREPLKeyword;
   formatStatus = function(code, url) {
     var msg = "HTTP " + code + " " + stylize(url, 'white');
-    if (200 <= code && code < 300) {
+    if (httpSuccess(code)) {
       console.log(stylize(msg, 'green'));
-    } else if (300 <= code && code < 400) {
+    } else if (httpRedirection(code)) {
       console.log(stylize(msg, 'yellow'));
-    } else if (400 <= code && code < 600) {
+    } else if (httpClientError(status) || httpServerError(status)) {
       console.log(stylize(msg, 'red'));
     }
   };
@@ -148,7 +163,7 @@ function WebShell(stream) {
   doRedirect = function() {
     var location = $_.headers.location;
     if (location) {
-      var locationUrl = parseURL(location);
+      var locationUrl = parseURL(location, false);
       if (!locationUrl.protocol) {
         var prevUrl = parseURL($_.previousUrl);
         // a relative URL, auto-populate with previous URL's info
@@ -270,12 +285,15 @@ function WebShell(stream) {
       });
       response.on('end', function() {
         web_repl.displayPrompt();
-        ctx.$_.raw = body;
-        if (_.include(jsonHeaders, ctx.$_.headers['content-type'].split('; ')[0])) {
-          ctx.$_.json = JSON.parse(body);
+        $_.raw = body;
+        $_.document = $_.json = null;
+        if (httpSuccess(response.statusCode)) {
+          if (_.include(jsonHeaders, $_.headers['content-type'].split('; ')[0])) {
+            $_.json = JSON.parse(body);
+          }
         }
         
-        _.extend(result, {raw: ctx.$_.raw, headers: ctx.$_.headers, statusCode: ctx.$_.status, json: ctx.$_.json});
+        _.extend(result, {raw: $_.raw, headers: $_.headers, statusCode: $_.status, json: $_.json});
         result.finalize();
       });
     });

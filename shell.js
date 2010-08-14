@@ -326,7 +326,6 @@ function WebShell(stream) {
           if (_.include(xmlHeaders, $_.headers['content-type'].split('; ')[0])) {
             $_.document = new env.DOMDocument(body);
             window.document = $_.document;
-            window.location = u;
             ctx.$ = function(selector, context) {
               var doSetup = !!env.window.document;
               env.window.document = $_.document;

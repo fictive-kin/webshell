@@ -43,6 +43,14 @@ var $_ = {
   cookies: cookies
 };
 
+var suppressPrompt = false;
+repl.REPLServer.prototype.displayPrompt = function () {
+  if (!suppressPrompt) {
+    this.rli.setPrompt(this.buffered_cmd.length ? '...   ' : this.prompt);
+    this.rli.prompt();
+  }
+};
+
 var verbs = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD', 'TRACE', 'CONNECT'];
 
 function WebShell(stream) {
@@ -224,6 +232,7 @@ function WebShell(stream) {
   });
 
   doHttpReq = function(verb, urlStr) {
+    suppressPrompt = true;
     result = new ResultHolder(verb, urlStr);
     var u = parseURL(urlStr);
     var client = http.createClient(u.port, u.hostname, u.protocol === 'https:');
@@ -250,6 +259,7 @@ function WebShell(stream) {
           content = fs.readFileSync($_.requestData);
         } catch (e) {
           sys.puts(stylize("Set $_.requestData to the filename to PUT", 'red'));
+          suppressPrompt = false;
           web_repl.displayPrompt();
           return false;
         }
@@ -287,6 +297,7 @@ function WebShell(stream) {
         body += chunk;
       });
       response.on('end', function() {
+        suppressPrompt = false;
         web_repl.displayPrompt();
         $_.raw = body;
         $_.document = $_.json = null;
@@ -326,12 +337,14 @@ WebShell.prototype = {
       }
     } catch(e) {
       console.log(e.stack);
+      suppressPrompt = false;
       web_repl.displayPrompt();
       return true;
     }
     return false;
   },
   rescue: function() {
+    suppressPrompt = false;
     web_repl.displayPrompt();
   }
 };

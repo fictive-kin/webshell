@@ -37,6 +37,7 @@ function saveContext(name, $_) {
   rc.contexts[name] = obj;
   writeRC(rc, $_.cookies);
   sys.puts("Saved context: " + name);
+  return getRC();
 }
 
 

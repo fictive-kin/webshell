@@ -72,13 +72,19 @@ function WebShell(stream) {
 
   patchHTTP(http);
   oldParseREPLKeyword = repl.REPLServer.prototype.parseREPLKeyword;
+
+  wsrc.loadContext('_previous', $_);
+
   web_repl = new repl.REPLServer("webshell> ", stream);
   process.on('exit', function () {
       var history = web_repl.rli.history;
-      var rc = wsrc.get();
+      if (web_repl.rli._hardClosed) {
+        var rc = wsrc.get();
+      } else {
+        var rc = wsrc.saveContext('_previous', $_);
+      }
       rc.history = history.slice(-100);
       wsrc.write(rc, cookies);
-      sys.puts("\n");
   });
   web_repl.rli.history = wsrc.get().history;
 
@@ -163,8 +169,8 @@ function WebShell(stream) {
   };
   ctx.$_.follow = doRedirect;
 
-  ctx.$_.saveContext = wsrc.saveContext;
-  ctx.$_.loadContext = wsrc.loadContext;
+  ctx.$_.saveContext = function (name) { wsrc.saveContext(name, $_); };
+  ctx.$_.loadContext = function (name) { wsrc.loadContext(name, $_); };
   
   function base64Encode(str) {
     return (new Buffer(str, 'ascii')).toString('base64');

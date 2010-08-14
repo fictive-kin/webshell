@@ -142,6 +142,14 @@ try {
 	DOMDocument = function(file){
 		this._file = file;
 		this._dom = libxml.parseHtmlString(file);
+		/* 
+		  the next line is not a bug or a side-effect free function.  On www.google.com the HTML is particularly
+		   malformed, and for some reason calling toString() on the root element changes the declared character encoding
+		   of the underlying document...interesting.
+		   The upshot is that without this call, jQuery doesn't work on google.com because the obj_nodes cache key changes
+		   after it gets assigned in the line below 
+		*/ 
+		this._dom.root().toString();
 		if (!obj_nodes[this._dom])
 			obj_nodes[this._dom] = this;
 	};

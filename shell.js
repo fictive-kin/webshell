@@ -163,39 +163,8 @@ function WebShell(stream) {
   };
   ctx.$_.follow = doRedirect;
 
-  ctx.$_.saveContext = function(name) {
-    var obj = {};
-    _.each(ctx.$_, function(v, k) {
-      if (!_.isFunction(v)) {
-        obj[k] = v;
-      }
-    });
-    delete obj['cookies'];
-    obj.__cookieJar = $_.cookies.__get_raw__();
-
-    var rc = wsrc.get();
-
-    if (!rc.contexts) {
-      rc.contexts = {};
-    }
-    rc.contexts[name] = obj;
-    wsrc.write(rc, cookies);
-    sys.puts("Saved context: " + name);
-  }
-
-  ctx.$_.loadContext = function(name) {
-    var rc = wsrc.get();
-    if (rc.contexts[name]) {
-      _.each(rc.contexts[name], function (v, k) {
-        ctx.$_[k] = v;
-      });
-      $_.cookies.__set_raw__(ctx.$_.__cookieJar);
-      delete ctx.$_['__cookieJar'];
-      sys.puts("Loaded context: " + name);
-    } else {
-      sys.puts(stylize("Could not load context: " + name, 'red'));
-    }
-  }
+  ctx.$_.saveContext = wsrc.saveContext;
+  ctx.$_.loadContext = wsrc.loadContext;
   
   function base64Encode(str) {
     return (new Buffer(str, 'ascii')).toString('base64');

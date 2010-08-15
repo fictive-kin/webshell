@@ -10,6 +10,7 @@ require.paths.unshift(__dirname + '/lib');
 require.paths.unshift(__dirname);
 var sys = require('sys'),
     repl = require('repl'),
+    wsrepl = require('wsrepl'),
     http = require('http'),
     url = require('url'),
     fs = require('fs'),
@@ -21,9 +22,6 @@ var sys = require('sys'),
     _ = require('underscore')._,
     env = require('env'),
     jquery = require('jquery');
-
-// NOTE: readline requires node.js patch; see http://gist.github.com/514195
-// Requested a pull from ry, and from the node mailing list 2010/08/08 -SC
 
 var $_ = {
   printHeaders: false,
@@ -44,7 +42,8 @@ var $_ = {
     }
     return false;
   },
-  cookies: cookies
+  cookies: cookies,
+  toolbox: {}
 };
 
 var window = env.window;
@@ -93,13 +92,37 @@ function WebShell(stream) {
 
   patchHTTP(http);
   oldParseREPLKeyword = repl.REPLServer.prototype.parseREPLKeyword;
+
+  wsrc.loadContext('_previous', $_);
+
+  var getContextsCompletion = function (cmd) {
+    var completion = [];
+    _.each(wsrc.get().contexts, function (v, k) {
+      completion.push('$_.' + cmd + '("' + k + '")');
+    });
+    web_repl.rli.complete(true, completion);
+  };
+  var getObjectCompletion = function (cmd, obj) {
+    var completion = [];
+    _.each(obj, function (v, k) {
+      var completer = cmd + '.' + k;
+      if (_.isFunction(obj[k])) {
+        completer += '(';
+      }
+      completion.push(completer);
+    });
+    web_repl.rli.complete(true, completion);
+  };
+
   web_repl = new repl.REPLServer("webshell> ", stream);
   process.on('exit', function () {
-      var history = web_repl.rli.history;
+    if (web_repl.rli._hardClosed) {
       var rc = wsrc.get();
-      rc.history = history.slice(-100);
-      wsrc.write(rc, cookies);
-      sys.puts("\n");
+    } else {
+      var rc = wsrc.saveContext('_previous', $_);
+    }
+    rc.history = web_repl.rli.history;
+    wsrc.write(rc, cookies);
   });
   web_repl.rli.history = wsrc.get().history;
 
@@ -117,21 +140,39 @@ function WebShell(stream) {
     if (_.include(verbs, split[0])) {
       return web_repl.rli.completeHistory(true);
     } else if (web_repl.rli.line.substring(0, '$_.loadContext('.length) == '$_.loadContext(') {
-      var completion = [];
-      _.each(wsrc.get().contexts, function (k) {
-        completion.push('$_.loadContext("' + k + '")');
-      });
-      web_repl.rli.complete(true, completion);
+      getContextsCompletion('loadContext');
+    } else if (web_repl.rli.line.substring(0, '$_.delContext('.length) == '$_.delContext(') {
+      getContextsCompletion('delContext');
+    } else if (web_repl.rli.line.substring(0, '$_.'.length) == '$_.') {
+      var pieces = web_repl.rli.line.split('.');
+      // discard last piece:
+      pieces.pop();
+      switch (pieces.length) {
+        case 1: // "$_"
+          getObjectCompletion('$_', $_);
+          break;
+        case 2: // "$_.something"
+          if ($_[pieces[1]]) {
+            getObjectCompletion(pieces.join('.'), $_[pieces[1]]);
+          }
+          break;
+        case 3: // "$_.something.somethingelse"
+          if ($_[pieces[1]][pieces[2]]) {
+            getObjectCompletion(pieces.join('.'), $_[pieces[1]][pieces[2]]);
+          }
+          break;
+        case 4: // "$_.something.somethingelse.other"
+          if ($_[pieces[1]][pieces[2]][pieces[3]]) {
+            getObjectCompletion(pieces.join('.'), $_[pieces[1]][pieces[2]][pieces[3]]);
+          }
+          break;
+        default:
+          // too deep;
+      }
+    } else if (web_repl.rli.line.substring(0, '$_.toolbox.'.length) == '$_.toolbox.') {
+      getObjectCompletion('$_.toolbox', $_.toolbox);
     } else if (web_repl.rli.line.substring(0, 3) == '$_.') {
-      var completion = [];
-      _.each($_, function (v, k) {
-        var completer = '$_.' + k;
-        if (_.isFunction($_[k])) {
-          completer += '(';
-        }
-        completion.push(completer);
-      });
-      web_repl.rli.complete(true, completion);
+      getObjectCompletion('$_', $_);
     }
     return true;
   });
@@ -184,39 +225,9 @@ function WebShell(stream) {
   };
   ctx.$_.follow = doRedirect;
 
-  ctx.$_.saveContext = function(name) {
-    var obj = {};
-    _.each(ctx.$_, function(v, k) {
-      if (!_.isFunction(v)) {
-        obj[k] = v;
-      }
-    });
-    delete obj['cookies'];
-    obj.__cookieJar = $_.cookies.__get_raw__();
-
-    var rc = wsrc.get();
-
-    if (!rc.contexts) {
-      rc.contexts = {};
-    }
-    rc.contexts[name] = obj;
-    wsrc.write(rc, cookies);
-    sys.puts("Saved context: " + name);
-  }
-
-  ctx.$_.loadContext = function(name) {
-    var rc = wsrc.get();
-    if (rc.contexts[name]) {
-      _.each(rc.contexts[name], function (v, k) {
-        ctx.$_[k] = v;
-      });
-      $_.cookies.__set_raw__(ctx.$_.__cookieJar);
-      delete ctx.$_['__cookieJar'];
-      sys.puts("Loaded context: " + name);
-    } else {
-      sys.puts(stylize("Could not load context: " + name, 'red'));
-    }
-  }
+  ctx.$_.saveContext = function (name) { wsrc.saveContext(name, $_); };
+  ctx.$_.loadContext = function (name) { wsrc.loadContext(name, $_); };
+  ctx.$_.delContext = function (name) { wsrc.delContext(name, $_); };
   
   function base64Encode(str) {
     return (new Buffer(str, 'ascii')).toString('base64');
@@ -256,6 +267,7 @@ function WebShell(stream) {
   });
 
   doHttpReq = function(verb, urlStr) {
+    web_repl.suppressPrompt = true;
     result = new ResultHolder(verb, urlStr);
     var u = parseURL(urlStr);
     var client = http.createClient(u.port, u.hostname, u.protocol === 'https:');
@@ -283,7 +295,7 @@ function WebShell(stream) {
           content = fs.readFileSync($_.requestData);
         } catch (e) {
           sys.puts(stylize("Set $_.requestData to the filename to PUT", 'red'));
-          web_repl.displayPrompt();
+          web_repl.displayPrompt(true);
           return false;
         }
         if (!headers['Content-type']) {
@@ -291,7 +303,11 @@ function WebShell(stream) {
         }
         break;
     }
-    var request = client.request(verb, u.pathname, headers);
+    var path = u.pathname;
+    if (u.search) {
+      path += u.search;
+    }
+    var request = client.request(verb, path, headers);
     if (content) {
       headers['Content-length'] = content.length;
       request.write(content);
@@ -316,9 +332,10 @@ function WebShell(stream) {
         body += chunk;
       });
       response.on('end', function() {
-        web_repl.displayPrompt();
+        web_repl.displayPrompt(true);
         $_.raw = body;
-        $_.document = ctx.$_.json = null;
+        $_.document = $_.json = null;
+
         if (httpSuccess(response.statusCode)) {
           if (_.include(jsonHeaders, $_.headers['content-type'].split('; ')[0])) {
             $_.json = JSON.parse(body);
@@ -366,13 +383,13 @@ WebShell.prototype = {
       }
     } catch(e) {
       console.log(e.stack);
-      web_repl.displayPrompt();
+      web_repl.displayPrompt(true);
       return true;
     }
     return false;
   },
   rescue: function() {
-    web_repl.displayPrompt();
+    web_repl.displayPrompt(true);
   }
 };
 

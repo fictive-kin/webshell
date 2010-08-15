@@ -72,15 +72,17 @@ readline.Interface.prototype.complete = function(chop, input) {
 readline.Interface.prototype.node_ttyWrite = readline.Interface.prototype._ttyWrite;
 
 readline.Interface.prototype._ttyWrite = function (b) {
+  this._hardClosed = false;
   switch (b[0]) {
 
     case 3: // control-c
       this.output.write("^C");
+      this._hardClosed = true;
       break;
 
     case 4: // control-d, delete right or EOF
       if (this.cursor === 0 && this.line.length === 0) { // only at start
-        this.output.write("^D");
+        this.output.write("^D\r\n");
       }
       break;
 
@@ -94,3 +96,20 @@ readline.Interface.prototype._ttyWrite = function (b) {
   // unhandled, so let the original method handle it
   this.node_ttyWrite(b);
 }
+
+// overloading the _addHistory method to up the history size to 1000
+var kHistorySize = 1000;
+readline.Interface.prototype._addHistory = function () {
+  if (this.line.length === 0) return "";
+
+  this.history.unshift(this.line);
+  this.line = "";
+  this.historyIndex = -1;
+
+  this.cursor = 0;
+
+  // Only store so many
+  if (this.history.length > kHistorySize) this.history.pop();
+
+  return this.history[0];
+};

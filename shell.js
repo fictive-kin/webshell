@@ -126,6 +126,8 @@ function WebShell(stream) {
       return web_repl.rli.completeHistory(true);
     } else if (web_repl.rli.line.substring(0, '$_.loadContext('.length) == '$_.loadContext(') {
       getContextsCompletion('loadContext');
+    } else if (web_repl.rli.line.substring(0, '$_.delContext('.length) == '$_.delContext(') {
+      getContextsCompletion('delContext');
     } else if (web_repl.rli.line.substring(0, 3) == '$_.') {
       var completion = [];
       _.each($_, function (v, k) {
@@ -190,6 +192,7 @@ function WebShell(stream) {
 
   ctx.$_.saveContext = function (name) { wsrc.saveContext(name, $_); };
   ctx.$_.loadContext = function (name) { wsrc.loadContext(name, $_); };
+  ctx.$_.delContext = function (name) { wsrc.delContext(name, $_); };
   
   function base64Encode(str) {
     return (new Buffer(str, 'ascii')).toString('base64');

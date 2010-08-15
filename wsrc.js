@@ -55,9 +55,21 @@ function loadContext(name, $_) {
   }
 }
 
+function delContext(name, $_) {
+  var rc = getRC();
+  if (rc.contexts[name]) {
+    delete rc.contexts[name];
+    writeRC(rc, $_.cookies);
+    sys.puts("Deleted context: " + name);
+  } else {
+    sys.puts(stylize("Context " + name + " does not exist.", 'red'));
+  }
+}
+
 
 exports.get = getRC;
 exports.write = writeRC;
 exports.saveContext = saveContext;
 exports.loadContext = loadContext;
+exports.delContext = delContext;
 

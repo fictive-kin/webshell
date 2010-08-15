@@ -3,6 +3,8 @@ var fs = require('fs'),
     stylize = require('colors').stylize,
     _ = require('underscore')._;
 
+var functionPrefix = '___WSFUNC___';
+
 function getRC() {
   try {
     return JSON.parse(fs.readFileSync(process.env.HOME + '/.webshellrc'));
@@ -26,6 +28,14 @@ function saveContext(name, $_) {
       obj[k] = v;
     }
   });
+  var toolbox = {};
+  _.each(obj.toolbox, function(v, k) {
+    if (typeof v != 'function') {
+      toolbox[k] = v;
+    }
+    toolbox[k] = functionPrefix + v;
+  });
+  obj.toolbox = toolbox;
   delete obj['cookies'];
   obj.__cookieJar = $_.cookies.__get_raw__();
 
@@ -47,6 +57,18 @@ function loadContext(name, $_) {
     _.each(rc.contexts[name], function (v, k) {
       $_[k] = v;
     });
+    // transpose functions from toolbox
+    if ($_.toolbox) {
+      var toolbox = {};
+      _.each($_.toolbox, function (v, k) {
+        if (v.substring(0, functionPrefix.length) == functionPrefix) {
+          eval("toolbox[k] = " + v.slice(functionPrefix.length));
+        } else {
+          toolbox[k] = v;
+        }
+      });
+      $_.toolbox = toolbox;
+    }
     $_.cookies.__set_raw__($_.__cookieJar);
     delete $_['__cookieJar'];
     sys.puts("Loaded context: " + name);

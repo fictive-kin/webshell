@@ -41,7 +41,8 @@ var $_ = {
     }
     return false;
   },
-  cookies: cookies
+  cookies: cookies,
+  toolbox: {}
 };
 
 var verbs = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD', 'TRACE', 'CONNECT'];
@@ -98,6 +99,19 @@ function WebShell(stream) {
     });
     web_repl.rli.complete(true, completion);
   };
+  var getObjectCompletion = function (cmd, obj) {
+    var completion = [];
+    _.each(obj, function (v, k) {
+      var completer = cmd + '.' + k;
+      if (_.isFunction(obj[k])) {
+        completer += '(';
+      } else if (typeof obj[k] == 'object') {
+        completer += '.';
+      }
+      completion.push(completer);
+    });
+    web_repl.rli.complete(true, completion);
+  };
 
   web_repl = new repl.REPLServer("webshell> ", stream);
   process.on('exit', function () {
@@ -128,16 +142,10 @@ function WebShell(stream) {
       getContextsCompletion('loadContext');
     } else if (web_repl.rli.line.substring(0, '$_.delContext('.length) == '$_.delContext(') {
       getContextsCompletion('delContext');
+    } else if (web_repl.rli.line.substring(0, '$_.toolbox.'.length) == '$_.toolbox.') {
+      getObjectCompletion('$_.toolbox', $_.toolbox);
     } else if (web_repl.rli.line.substring(0, 3) == '$_.') {
-      var completion = [];
-      _.each($_, function (v, k) {
-        var completer = '$_.' + k;
-        if (_.isFunction($_[k])) {
-          completer += '(';
-        }
-        completion.push(completer);
-      });
-      web_repl.rli.complete(true, completion);
+      getObjectCompletion('$_', $_);
     }
     return true;
   });

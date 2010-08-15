@@ -91,6 +91,14 @@ function WebShell(stream) {
 
   wsrc.loadContext('_previous', $_);
 
+  var getContextsCompletion = function (cmd) {
+    var completion = [];
+    _.each(wsrc.get().contexts, function (v, k) {
+      completion.push('$_.' + cmd + '("' + k + '")');
+    });
+    web_repl.rli.complete(true, completion);
+  };
+
   web_repl = new repl.REPLServer("webshell> ", stream);
   process.on('exit', function () {
     if (web_repl.rli._hardClosed) {
@@ -117,11 +125,7 @@ function WebShell(stream) {
     if (_.include(verbs, split[0])) {
       return web_repl.rli.completeHistory(true);
     } else if (web_repl.rli.line.substring(0, '$_.loadContext('.length) == '$_.loadContext(') {
-      var completion = [];
-      _.each(wsrc.get().contexts, function (k) {
-        completion.push('$_.loadContext("' + k + '")');
-      });
-      web_repl.rli.complete(true, completion);
+      getContextsCompletion('loadContext');
     } else if (web_repl.rli.line.substring(0, 3) == '$_.') {
       var completion = [];
       _.each($_, function (v, k) {

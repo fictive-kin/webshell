@@ -43,7 +43,11 @@ var $_ = {
     return false;
   },
   cookies: cookies,
-  toolbox: {}
+  toolbox: {},
+  evalFile: function (filename) {
+    eval("var s = " + fs.readFileSync(filename));
+    return s;
+  }
 };
 
 var window = env.window;

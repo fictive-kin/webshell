@@ -383,7 +383,7 @@ try {
 			return this._dom.name();
 		},
 		toString: function(){
-			return "<" + this.tagName + (this.id ? "#" + this.id : "" ) + ">";
+			return "<" + this.tagName + (this.id ? "#" + this.id : "" ) + (this.className ? "." + (this.className.split(" ").join(".")) : "") + ">";
 		},
 		get outerHTML(){
 			var ret = "<" + this.tagName, attr = this.attributes;

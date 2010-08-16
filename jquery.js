@@ -74,6 +74,13 @@ function setup(window) {
 		indexOf = Array.prototype.indexOf;
 
 	jQuery.fn = jQuery.prototype = {
+	  inspect: function() {
+	    out = []
+	    this.each(function() {
+	      out.push(this);
+      })
+      return out.toString();
+    },
 		init: function( selector, context ) {
 			var match, elem, ret, doc;
 

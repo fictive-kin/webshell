@@ -266,8 +266,8 @@ function WebShell(stream) {
     _.define(this, 'inspect', null);
   });
 
-  doHttpReq = function(verb, urlStr) {
-    web_repl.suppressPrompt = true;
+  doHttpReq = function(verb, urlStr, cb) {
+    web_repl.suppressPrompt++;
     result = new ResultHolder(verb, urlStr);
     var u = parseURL(urlStr);
     var client = http.createClient(u.port, u.hostname, u.protocol === 'https:');
@@ -332,7 +332,6 @@ function WebShell(stream) {
         body += chunk;
       });
       response.on('end', function() {
-        web_repl.displayPrompt(true);
         $_.raw = body;
         $_.document = $_.json = null;
 
@@ -355,14 +354,18 @@ function WebShell(stream) {
         }
         _.extend(result, {raw: $_.raw, headers: $_.headers, statusCode: $_.status, json: $_.json, document: $_.document});
         result.finalize();
+        if (cb) {
+          cb($_);
+        }
+        web_repl.displayPrompt(true);
       });
     });
     return result;
   };
   
   _.each(verbs, function (v) {
-    $_[v.toLowerCase()] = function(url) {
-      return doHttpReq(v, url);
+    $_[v.toLowerCase()] = function(url, cb) {
+      return doHttpReq(v, url, cb);
     };
   });
   

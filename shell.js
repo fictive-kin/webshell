@@ -264,7 +264,7 @@ function WebShell(stream) {
   });
 
   doHttpReq = function(verb, urlStr, cb) {
-    web_repl.suppressPrompt = true;
+    web_repl.suppressPrompt++;
     result = new ResultHolder(verb, urlStr);
     var u = parseURL(urlStr);
     var client = http.createClient(u.port, u.hostname, u.protocol === 'https:');

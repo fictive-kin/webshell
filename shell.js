@@ -19,7 +19,6 @@ var sys = require('sys'),
     cookies = require('cookies'),
     wsrc = require('wsrc'),
     wsreadline = require('wsreadline'),
-    eventEmitter = require('events').EventEmitter,
     _ = require('underscore')._;
 
 var $_ = {

@@ -7,11 +7,8 @@ Includes tab completion, history, context persistence and cookies.
 
 This is best demonstrated.
 
-NOTE: a recent version of Node.js is required (for improved readline-like
-behaviour). It's best to build your own version.
-
-See http://github.com/ry/node
-You need a checkout later than 7068912fbbe53c2f9bab6c6ab13bd6a6d31e2ede
+NOTE: a recent version of Node.js (>=0.1.104) is required (for improved
+readline-like behaviour).
 
 Simple HTTP requests
 --------------------

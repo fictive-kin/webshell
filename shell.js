@@ -186,7 +186,7 @@ function WebShell(stream) {
       console.log(stylize(msg, 'green'));
     } else if (httpRedirection(code)) {
       console.log(stylize(msg, 'yellow'));
-    } else if (httpClientError(status) || httpServerError(status)) {
+    } else if (httpClientError(code) || httpServerError(code)) {
       console.log(stylize(msg, 'red'));
     }
   };

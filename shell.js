@@ -67,19 +67,6 @@ function WebShell(stream) {
     return 500 <= status && status < 600;
   }
   
-  function patchHTTP(http) {
-    var oldAddHeader = http.IncomingMessage.prototype._addHeaderLine;
-    http.IncomingMessage.prototype._addHeaderLine = function(field, value) {
-      if (field === 'set-cookie') {
-        this.headers['set-cookie'] = this.headers['set-cookie'] || [];
-        this.headers['set-cookie'].push(value);
-        return;
-      }
-      return oldAddHeader.call(this, field, value);
-    };
-  }
-
-
   function parseURL(urlStr, protocolHelp) {
     var u = url.parse(urlStr);
     if (protocolHelp && !u.protocol) {
@@ -90,7 +77,6 @@ function WebShell(stream) {
     return u;
   }
 
-  patchHTTP(http);
   oldParseREPLKeyword = repl.REPLServer.prototype.parseREPLKeyword;
 
   wsrc.loadContext('_previous', $_);

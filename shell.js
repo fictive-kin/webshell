@@ -320,11 +320,11 @@ function WebShell(stream) {
         $_.raw = body;
         $_.document = $_.json = null;
         if (httpSuccess(response.statusCode)) {
-          if (_.include(jsonHeaders, $_.headers['content-type'].split('; ')[0])) {
+          if ($_.headers['content-type'] && _.include(jsonHeaders, $_.headers['content-type'].split('; ')[0])) {
             $_.json = JSON.parse(body);
           }
         }
-        
+
         _.extend(result, {raw: $_.raw, headers: $_.headers, statusCode: $_.status, json: $_.json});
         result.finalize();
         if (cb) {

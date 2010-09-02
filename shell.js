@@ -226,7 +226,7 @@ function WebShell(stream) {
     } else if (url.protocol === 'http:' && url.port !== 80) {
       hostHeader += ":" + url.port;
     }
-    var headers = {'Host': hostHeader, 'User-Agent': 'webshell (node.js)', 'Accept': '*/*'};
+    var headers = {'Host': hostHeader, 'User-Agent': 'webshell (node.js)', 'Accept': 'application/json, */*'};
     if (url.auth) {
       headers['Authorization'] = 'Basic ' + base64Encode(url.auth);
     }

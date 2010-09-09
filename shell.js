@@ -30,6 +30,7 @@ var $_ = {
   previousVerb: null,
   previousUrl: null,
   headers: [],
+  requestHeaders: [],
   requestData: null,
   useCookies: true,
   postToRequestData: function (post) {
@@ -263,6 +264,12 @@ function WebShell(stream) {
 
     var content = null;
     var headers = makeHeaders(u);
+
+    // merge in $_.requestHeaders
+    _.each($_.requestHeaders, function(v, k) {
+      headers[k] = v;
+    });
+
     switch (verb) {
       case 'POST':
         if (typeof $_.requestData == "object") {
@@ -297,6 +304,7 @@ function WebShell(stream) {
       headers['Content-length'] = content.length;
       request.write(content);
     }
+    $_.requestHeaders = headers;
     request.end();
     request.on('response', function (response) {
       if ($_.printResponse) {

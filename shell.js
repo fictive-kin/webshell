@@ -267,7 +267,9 @@ function WebShell(stream) {
 
     // merge in $_.requestHeaders
     _.each($_.requestHeaders, function(v, k) {
-      headers[k] = v;
+      if (k.toLowerCase() != 'host') { // host is provided by makeHeaders()
+        headers[k] = v;
+      }
     });
 
     switch (verb) {

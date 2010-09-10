@@ -13,19 +13,13 @@ readline.Interface.prototype.cursorToEnd = function() {
   this.cursor = this.line.length;
 }
 
-readline.Interface.prototype.completeHistory = function(chop) {
-  return this.complete(chop, this.history);
+readline.Interface.prototype.completeHistory = function() {
+  return this.complete(this.history);
 }
 
-readline.Interface.prototype.complete = function(chop, input) {
-  // chop is useful for removing the "complete" character from the input
-  // e.g., if the user presses "tab" then we want to chop off the tab
-  if (chop) {
-    var line = this.line.substring(0, this.line.length -1);
-  } else {
-    var line = this.line;
-  }
+readline.Interface.prototype.complete = function(input) {
 
+  var line = this.line;
   var matches = [];
 
   // find all matching items (but avoid duplicates)

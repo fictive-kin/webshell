@@ -43,7 +43,7 @@ var $_ = {
   },
   cookies: cookies,
   toolbox: {},
-  acceptTypes: ['wapplication/json', '*/*'],
+  acceptTypes: ['application/json', '*/*'],
   evalFile: function (filename) {
     eval("var s = " + fs.readFileSync(filename));
     return s;

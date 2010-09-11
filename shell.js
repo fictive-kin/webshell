@@ -32,6 +32,7 @@ var $_ = {
   previousVerb: null,
   previousUrl: null,
   headers: [],
+  requestHeaders: [],
   requestData: null,
   useCookies: true,
   postToRequestData: function (post) {
@@ -230,7 +231,7 @@ function WebShell(stream) {
     } else if (url.protocol === 'http:' && url.port !== 80) {
       hostHeader += ":" + url.port;
     }
-    var headers = {'Host': hostHeader, 'User-Agent': 'webshell (node.js)', 'Accept': '*/*'};
+    var headers = {'Host': hostHeader, 'User-Agent': 'webshell (node.js)', 'Accept': 'application/json, */*'};
     if (url.auth) {
       headers['Authorization'] = 'Basic ' + base64Encode(url.auth);
     }
@@ -268,6 +269,14 @@ function WebShell(stream) {
 
     var content = null;
     var headers = makeHeaders(u);
+
+    // merge in $_.requestHeaders
+    _.each($_.requestHeaders, function(v, k) {
+      if (k.toLowerCase() != 'host') { // host is provided by makeHeaders()
+        headers[k] = v;
+      }
+    });
+
     switch (verb) {
       case 'POST':
         if (typeof $_.requestData == "object") {
@@ -302,6 +311,7 @@ function WebShell(stream) {
       headers['Content-length'] = content.length;
       request.write(content);
     }
+    $_.requestHeaders = headers;
     request.end();
     request.on('response', function (response) {
       if ($_.printResponse) {
@@ -326,7 +336,7 @@ function WebShell(stream) {
         $_.document = $_.json = null;
 
         if (httpSuccess(response.statusCode)) {
-          if (_.include(jsonHeaders, $_.headers['content-type'].split('; ')[0])) {
+          if ($_.headers['content-type'] && _.include(jsonHeaders, $_.headers['content-type'].split('; ')[0])) {
             $_.json = JSON.parse(body);
           }
           if (_.include(xmlHeaders, $_.headers['content-type'].split('; ')[0])) {

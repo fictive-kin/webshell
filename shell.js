@@ -5,6 +5,7 @@
 /* response data will be put into the global variable $_ */
 /* raw response data: $_.raw */
 /* headers: $_.headers */
+/* vim: sw=2 ts=2 noet */
 
 require.paths.unshift(__dirname + '/lib');
 require.paths.unshift(__dirname);
@@ -59,19 +60,19 @@ function WebShell(stream) {
   function httpSuccess(status) {
     return 200 <= status && status < 300;
   }
-  
+
   function httpRedirection(status) {
     return 300 <= status && status < 400;
   }
-  
+
   function httpClientError(status) {
     return 400 <= status && status < 500;
   }
-  
+
   function httpServerError(status) {
     return 500 <= status && status < 600;
   }
-  
+
   function parseURL(urlStr, protocolHelp) {
     var u = url.parse(urlStr);
     if (protocolHelp && !u.protocol) {
@@ -93,6 +94,7 @@ function WebShell(stream) {
     });
     web_repl.rli.complete(completion);
   };
+
   var getObjectCompletion = function (cmd, obj) {
     var completion = [];
     _.each(obj, function (v, k) {
@@ -123,10 +125,12 @@ function WebShell(stream) {
       // cursor is not at the end of the line
       return true;
     }
+
     if (chunk != String.fromCharCode(9)) {
       // not the tab key
       return true;
     }
+
     var split = web_repl.rli.line.split(' ');
     if (_.include(verbs, split[0])) {
       return web_repl.rli.completeHistory();
@@ -169,7 +173,7 @@ function WebShell(stream) {
   });
 
   var ctx = web_repl.context;
-  
+
   repl.REPLServer.prototype.parseREPLKeyword = this.parseREPLKeyword;
   formatStatus = function(code, url) {
     var msg = "HTTP " + code + " " + stylize(url, 'white');
@@ -181,17 +185,17 @@ function WebShell(stream) {
       console.log(stylize(msg, 'red'));
     }
   };
-  
+
   normalizeName = function(name) {
     return _.map(name.split('-'), function(s) { return s[0].toUpperCase() + s.slice(1, s.length); }).join('-');
   };
-  
+
   printHeader = function(value, name) {
     sys.puts(normalizeName(name) + ": " + value);
   };
-  
+
   ctx.$_ = $_;
-  
+
   doRedirect = function() {
     var location = $_.headers.location;
     if (location) {
@@ -214,16 +218,16 @@ function WebShell(stream) {
       sys.puts(stylize("No previous request!", 'red'));
     }
   };
-  ctx.$_.follow = doRedirect;
 
+  ctx.$_.follow = doRedirect;
   ctx.$_.saveContext = function (name) { wsrc.saveContext(name, $_); };
   ctx.$_.loadContext = function (name) { wsrc.loadContext(name, $_); };
   ctx.$_.delContext = function (name) { wsrc.delContext(name, $_); };
-  
+
   function base64Encode(str) {
     return (new Buffer(str, 'ascii')).toString('base64');
   }
-  
+
   function makeHeaders(url) {
     var hostHeader = url.hostname;
     if (url.protocol === 'https:' && url.port !== 443) {
@@ -253,6 +257,7 @@ function WebShell(stream) {
       return str;
     }
   };
+
   _.define(ResultHolder.prototype, 'finalize', function() {
     _.define(this, 'inspect', null);
   });
@@ -302,15 +307,18 @@ function WebShell(stream) {
         }
         break;
     }
+
     var path = u.pathname;
     if (u.search) {
       path += u.search;
     }
+
     var request = client.request(verb, path, headers);
     if (content) {
       headers['Content-length'] = content.length;
       request.write(content);
     }
+
     $_.requestHeaders = headers;
     request.end();
     request.on('response', function (response) {
@@ -323,14 +331,17 @@ function WebShell(stream) {
         _.each(response.headers, printHeader);
       }
       ctx.$_.headers = response.headers;
+
       if ($_.useCookies) {
         $_.cookies.update(u.hostname, response.headers['set-cookie']);
       }
       response.setEncoding('utf8');
+
       var body = "";
       response.on('data', function (chunk) {
         body += chunk;
       });
+
       response.on('end', function() {
         $_.raw = body;
         $_.document = $_.json = null;
@@ -342,6 +353,7 @@ function WebShell(stream) {
           if (_.include(xmlHeaders, $_.headers['content-type'].split('; ')[0])) {
             $_.document = new env.DOMDocument(body);
             window.document = $_.document;
+
             ctx.$ = function(selector, context) {
               var doSetup = !!env.window.document;
               env.window.document = $_.document;
@@ -350,25 +362,30 @@ function WebShell(stream) {
               }
               return env.window.jQuery(selector, context);
             }
+
           }
         }
+
         _.extend(result, {raw: $_.raw, headers: $_.headers, statusCode: $_.status, json: $_.json, document: $_.document});
         result.finalize();
+
         if (cb) {
           cb($_);
         }
+
         web_repl.displayPrompt(true);
       });
+
     });
     return result;
   };
-  
+
   _.each(verbs, function (v) {
     $_[v.toLowerCase()] = function(url, cb) {
       return doHttpReq(v, url, cb);
     };
   });
-  
+
 }
 
 WebShell.prototype = {
@@ -376,6 +393,7 @@ WebShell.prototype = {
     if (oldParseREPLKeyword.call(this, cmd)) {
       return true;
     }
+
     try {
       if (cmd) {
         var split = cmd.split(' ');
@@ -391,6 +409,7 @@ WebShell.prototype = {
     }
     return false;
   },
+
   rescue: function() {
     web_repl.displayPrompt(true);
   }

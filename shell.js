@@ -240,7 +240,10 @@ function WebShell(stream) {
       headers['Authorization'] = 'Basic ' + base64Encode(url.auth);
     }
     if ($_.useCookies) {
-      headers['Cookie'] = cookies.headerFor(url);
+      var cookie = cookies.headerFor(url);
+      if (cookie) {
+        headers['Cookie'] = cookie;
+      }
     }
     return headers;
   }

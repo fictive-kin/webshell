@@ -43,6 +43,7 @@ var $_ = {
   },
   cookies: cookies,
   toolbox: {},
+  acceptTypes: ['wapplication/json', '*/*'],
   evalFile: function (filename) {
     eval("var s = " + fs.readFileSync(filename));
     return s;
@@ -227,7 +228,7 @@ function WebShell(stream) {
     } else if (url.protocol === 'http:' && url.port !== 80) {
       hostHeader += ":" + url.port;
     }
-    var headers = {'Host': hostHeader, 'User-Agent': 'webshell (node.js)', 'Accept': 'application/json, */*'};
+    var headers = {'Host': hostHeader, 'User-Agent': 'webshell (node.js)', 'Accept': $_.acceptTypes.join(', ')};
     if (url.auth) {
       headers['Authorization'] = 'Basic ' + base64Encode(url.auth);
     }
@@ -267,7 +268,7 @@ function WebShell(stream) {
 
     // merge in $_.requestHeaders
     _.each($_.requestHeaders, function(v, k) {
-      if (k.toLowerCase() != 'host') { // host is provided by makeHeaders()
+      if (k.toLowerCase() != 'host' && k.toLowerCase() != 'accept') { // host and accept are  provided by makeHeaders()
         headers[k] = v;
       }
     });

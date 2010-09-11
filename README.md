@@ -189,3 +189,27 @@ HTTP verbs
     'DELETE'
     webshell> ^D
 
+Accept Types
+------------
+
+    webshell> $_.get("http://localhost:3000/echoaccept")
+    GET http://localhost:3000/echoaccept
+    HTTP 200 http://localhost:3000/echoaccept
+    webshell> $_.raw
+    'application/json, */*'
+    webshell> $_.acceptTypes = ['text/plain','text/html']
+    [ 'text/plain', 'text/html' ]
+    webshell> $_.get("http://localhost:3000/echoaccept")
+    GET http://localhost:3000/echoaccept
+    HTTP 200 http://localhost:3000/echoaccept
+    webshell> $_.raw
+    'text/plain, text/html'
+    webshell> $_.acceptTypes.shift()
+    'text/plain'
+    webshell> $_.get("http://localhost:3000/echoaccept")
+    GET http://localhost:3000/echoaccept
+    HTTP 200 http://localhost:3000/echoaccept
+    webshell> $_.raw
+    'text/html'
+    webshell> ^D
+

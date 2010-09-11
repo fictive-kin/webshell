@@ -232,9 +232,9 @@ function WebShell(stream) {
     }
 
     var headers = {
-        'Host': hostHeader,
-        'User-Agent': 'Webshell/' + webshellVersion + ' node.js/' + process.version,
-        'Accept': 'application/json, */*'
+      'Host': hostHeader,
+      'User-Agent': 'Webshell/' + webshellVersion + ' node.js/' + process.version,
+      'Accept': 'application/json, */*'
     };
 
     if (url.auth) {

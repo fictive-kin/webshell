@@ -7,6 +7,8 @@
 /* headers: $_.headers */
 /* vim: sw=2 ts=2 noet */
 
+var webshellVersion = '0.1-dev';
+
 require.paths.unshift(__dirname + '/lib');
 require.paths.unshift(__dirname);
 var sys = require('sys'),
@@ -235,10 +237,17 @@ function WebShell(stream) {
     } else if (url.protocol === 'http:' && url.port !== 80) {
       hostHeader += ":" + url.port;
     }
-    var headers = {'Host': hostHeader, 'User-Agent': 'webshell (node.js)', 'Accept': 'application/json, */*'};
+
+    var headers = {
+        'Host': hostHeader,
+        'User-Agent': 'Webshell/' + webshellVersion + ' node.js/' + process.version,
+        'Accept': 'application/json, */*'
+    };
+
     if (url.auth) {
       headers['Authorization'] = 'Basic ' + base64Encode(url.auth);
     }
+
     if ($_.useCookies) {
       var cookie = cookies.headerFor(url);
       if (cookie) {

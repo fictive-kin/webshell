@@ -2,7 +2,6 @@ var readline = require('readline');
 var sys = require('sys');
 var exec = require('child_process').exec;
 var fs = require('fs');
-var _ = require('underscore')._;
 
 var stdio = process.binding('stdio');
 
@@ -123,34 +122,6 @@ readline.Interface.prototype._addHistory = function () {
   return this.history[0];
 };
 
-readline.Interface.prototype._getCols = function (callback) {
-  // note: unixy
-  // TODO: find a better way to get the current width
-  var that = this;
-  exec('/usr/bin/env tput cols', function(error, stdout, stderr) {
-    if (error) {
-      // can't use tput; assume cols = 80
-      var cols = 80;
-    } else {
-      var cols = stdout.replace(/\s*$/, ""); // trim
-    }
-    var lineLen = that.line.length + that._promptLength;
-    var rows = Math.floor(lineLen / cols);
-    var cursorPos = (that._promptLength + that.cursor) % cols;
-    var cursorRow = Math.floor((that.cursor + that._promptLength) / cols);
-    var cursorDiff = rows - cursorRow;
-
-    var lineParams = {
-      rows: rows,
-      cursorPos: cursorPos,
-      cursorRow: cursorRow,
-      cursorDiff: cursorDiff
-    };
-
-    callback(lineParams);
-  });
-};
-
 readline.Interface.prototype._prevLineParams = null;
 
 readline.Interface.prototype._refreshLine  = function () {
@@ -158,44 +129,52 @@ readline.Interface.prototype._refreshLine  = function () {
 
   stdio.setRawMode(true);
 
-  var that = this;
+  var cols = process.binding('stdio').getColumns();
+  var lineLen = this.line.length + this._promptLength;
+  var rows = Math.floor(lineLen / cols);
+  var cursorPos = (this._promptLength + this.cursor) % cols;
+  var cursorRow = Math.floor((this.cursor + this._promptLength) / cols);
+  var cursorDiff = rows - cursorRow;
 
-  this._getCols(function(lineParams) {
-    // Cursor to left edge.
-    that.output.write('\x1b[0G');
+  // Cursor to left edge.
+  this.output.write('\x1b[0G');
 
-    // Erase to the right
-    that.output.write('\x1b[0K');
+  // Erase to the right
+  this.output.write('\x1b[0K');
 
-    // if we have a previous line, then clear what was written
-    if (null !== that._prevLineParams) {
+  // if we have a previous line, then clear what was written
+  if (null !== this._prevLineParams) {
 
-      // delete any additional lines in the terminal
-      that.output.write('\x1b[' + that._prevLineParams.cursorDiff + 'M');
+    // delete any additional lines in the terminal
+    this.output.write('\x1b[' + this._prevLineParams.cursorDiff + 'M');
 
-      // up one row, cursor to left, clear to right
-      for (var i=0; i < that._prevLineParams.cursorRow; i++) {
-        that.output.write('\x1b[1A\x1b[0G\x1b[0K');
-      }
+    // up one row, cursor to left, clear to right
+    for (var i=0; i < this._prevLineParams.cursorRow; i++) {
+      this.output.write('\x1b[1A\x1b[0G\x1b[0K');
     }
-    // store previous line params
-    that._prevLineParams = _.clone(lineParams);
+  }
+  // store previous line params
+  this._prevLineParams = {
+    rows: rows,
+    cursorPos: cursorPos,
+    cursorRow: cursorRow,
+    cursorDiff: cursorDiff
+  };
 
-    // Write the prompt and the current buffer content.
-    that.output.write(that._prompt);
-    that.output.write(that.line);
+  // Write the prompt and the current buffer content.
+  this.output.write(this._prompt);
+  this.output.write(this.line);
 
-    // Erase to right.
-    that.output.write('\x1b[0K');
+  // Erase to right.
+  this.output.write('\x1b[0K');
 
-    // Move cursor to original position.
-    if (lineParams.rows > 0 && lineParams.cursorDiff > 0) {
-      // cursor up {cursorDiff} lines
-      that.output.write('\x1b[' + lineParams.cursorDiff + 'A');
-    }
+  // Move cursor to original position.
+  if (rows > 0 && cursorDiff > 0) {
+    // cursor up {cursorDiff} lines
+    this.output.write('\x1b[' + cursorDiff + 'A');
+  }
 
-    that.output.write('\x1b[0G\x1b[' + lineParams.cursorPos + 'C');
-  });
+  this.output.write('\x1b[0G\x1b[' + cursorPos + 'C');
 };
 
 // vim: ts=2 sw=2 et

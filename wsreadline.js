@@ -1,5 +1,10 @@
 var readline = require('readline');
 var sys = require('sys');
+var exec = require('child_process').exec;
+var fs = require('fs');
+var _ = require('underscore')._;
+
+var stdio = process.binding('stdio');
 
 module.exports = readline;
 
@@ -86,6 +91,16 @@ readline.Interface.prototype._ttyWrite = function (b) {
       this.output.write('\x1b[0;0H');
       this._refreshLine();
       return;
+      break;
+
+    case 13:    /* enter */
+      this._prevLineParams = null; // reset prevLineParams
+      // write the rest of the current line (this ensures that the cursor is at
+      // the end of the current command)
+      this.output.write(this.line.slice(this.cursor));
+      // no return; pass through to normal "enter" handler
+      break;
+
   }
   // unhandled, so let the original method handle it
   this.node_ttyWrite(b);
@@ -107,3 +122,80 @@ readline.Interface.prototype._addHistory = function () {
 
   return this.history[0];
 };
+
+readline.Interface.prototype._getCols = function (callback) {
+  // note: unixy
+  // TODO: find a better way to get the current width
+  var that = this;
+  exec('/usr/bin/env tput cols', function(error, stdout, stderr) {
+    if (error) {
+      // can't use tput; assume cols = 80
+      var cols = 80;
+    } else {
+      var cols = stdout.replace(/\s*$/, ""); // trim
+    }
+    var lineLen = that.line.length + that._promptLength;
+    var rows = Math.floor(lineLen / cols);
+    var cursorPos = (that._promptLength + that.cursor) % cols;
+    var cursorRow = Math.floor((that.cursor + that._promptLength) / cols);
+    var cursorDiff = rows - cursorRow;
+
+    var lineParams = {
+      rows: rows,
+      cursorPos: cursorPos,
+      cursorRow: cursorRow,
+      cursorDiff: cursorDiff
+    };
+
+    callback(lineParams);
+  });
+};
+
+readline.Interface.prototype._prevLineParams = null;
+
+readline.Interface.prototype._refreshLine  = function () {
+  if (this._closed) return;
+
+  stdio.setRawMode(true);
+
+  var that = this;
+
+  this._getCols(function(lineParams) {
+    // Cursor to left edge.
+    that.output.write('\x1b[0G');
+
+    // Erase to the right
+    that.output.write('\x1b[0K');
+
+    // if we have a previous line, then clear what was written
+    if (null !== that._prevLineParams) {
+
+      // delete any additional lines in the terminal
+      that.output.write('\x1b[' + that._prevLineParams.cursorDiff + 'M');
+
+      // up one row, cursor to left, clear to right
+      for (var i=0; i < that._prevLineParams.cursorRow; i++) {
+        that.output.write('\x1b[1A\x1b[0G\x1b[0K');
+      }
+    }
+    // store previous line params
+    that._prevLineParams = _.clone(lineParams);
+
+    // Write the prompt and the current buffer content.
+    that.output.write(that._prompt);
+    that.output.write(that.line);
+
+    // Erase to right.
+    that.output.write('\x1b[0K');
+
+    // Move cursor to original position.
+    if (lineParams.rows > 0 && lineParams.cursorDiff > 0) {
+      // cursor up {cursorDiff} lines
+      that.output.write('\x1b[' + lineParams.cursorDiff + 'A');
+    }
+
+    that.output.write('\x1b[0G\x1b[' + lineParams.cursorPos + 'C');
+  });
+};
+
+// vim: ts=2 sw=2 et

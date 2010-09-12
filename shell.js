@@ -288,6 +288,12 @@ function WebShell(stream) {
     var headers = makeHeaders(u);
 
     // merge in $_.requestHeaders
+    if (typeof $_.requestHeaders != 'object') {
+        // something's not right here, so reset requestHeaders
+        // note: setting $_.requestHeaders to {} is also a good way for users
+        //       to reset things like the Accept header
+        $_.requestHeaders = {};
+    }
     _.each($_.requestHeaders, function(v, k) {
       if (k.toLowerCase() != 'host') { // host is provided by makeHeaders()
         headers[k] = v;

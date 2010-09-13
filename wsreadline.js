@@ -115,6 +115,17 @@ readline.Interface.prototype._ttyWrite = function (b) {
           }
         }
         return;
+      } else if (b[1] === 91 && b[2] === 68) { // left arrow
+        if (this.cursor > 0) {
+          this.cursor--;
+          if (this._prevLineParams) {
+            var cols = process.binding('stdio').getColumns();
+            this._prevLineParams.cursorPos = (this._promptLength + this.cursor) % cols;
+            this._prevLineParams.cursorRow = Math.floor((this._promptLength + this.cursor) / cols);
+          }
+          this.output.write('\x1b[0D');
+        }
+        return;
       }
       break;
 

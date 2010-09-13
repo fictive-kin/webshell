@@ -7,9 +7,9 @@
 /* headers: $_.headers */
 /* vim: sw=2 ts=2 noet */
 
+require.paths.unshift(__dirname + '/lib');
 var webshellVersion = '0.1-dev';
 
-require.paths.unshift(__dirname + '/lib');
 require.paths.unshift(__dirname);
 var sys = require('sys'),
     repl = require('repl'),

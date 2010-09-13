@@ -113,17 +113,14 @@ readline.Interface.prototype._ttyWrite = function (b) {
             // otherwise, just move the cursor one char to the right
             this.output.write('\x1b[0C');
           }
+          this._renegotiatePrevLineParams();
         }
         return;
       } else if (b[1] === 91 && b[2] === 68) { // left arrow
         if (this.cursor > 0) {
           this.cursor--;
-          if (this._prevLineParams) {
-            var cols = process.binding('stdio').getColumns();
-            this._prevLineParams.cursorPos = (this._promptLength + this.cursor) % cols;
-            this._prevLineParams.cursorRow = Math.floor((this._promptLength + this.cursor) / cols);
-          }
           this.output.write('\x1b[0D');
+          this._renegotiatePrevLineParams();
         }
         return;
       }
@@ -151,8 +148,15 @@ readline.Interface.prototype._addHistory = function () {
   return this.history[0];
 };
 
-readline.Interface.prototype._prevLineParams = null;
+readline.Interface.prototype._renegotiatePrevLineParams = function () {
+  if (this._prevLineParams) {
+    var cols = process.binding('stdio').getColumns();
+    this._prevLineParams.cursorPos = (this._promptLength + this.cursor) % cols;
+    this._prevLineParams.cursorRow = Math.floor((this._promptLength + this.cursor) / cols);
+  }
+};
 
+readline.Interface.prototype._prevLineParams = null;
 readline.Interface.prototype._refreshLine  = function () {
   if (this._closed) return;
 

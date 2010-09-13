@@ -92,12 +92,30 @@ readline.Interface.prototype._ttyWrite = function (b) {
       return;
       break;
 
-    case 13:    /* enter */
+    case 13: // enter
       this._prevLineParams = null; // reset prevLineParams
       // write the rest of the current line (this ensures that the cursor is at
       // the end of the current command)
       this.output.write(this.line.slice(this.cursor));
       // no return; pass through to normal "enter" handler
+      break;
+
+    case 27: // escape sequence
+      if (b[1] === 91 && b[2] === 67) { // right arrow
+        if (this.cursor != this.line.length) {
+          this.cursor++;
+          var cols = process.binding('stdio').getColumns();
+          // if we're at the first character of a new line:
+          if (((this.cursor + this._promptLength) % cols) == 0) {
+            // cursor to the left, down one line
+            this.output.write('\x1b[0G\x1b[1B');
+          } else {
+            // otherwise, just move the cursor one char to the right
+            this.output.write('\x1b[0C');
+          }
+        }
+        return;
+      }
       break;
 
   }

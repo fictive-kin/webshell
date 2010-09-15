@@ -353,7 +353,8 @@ function WebShell(stream) {
       });
       response.on('end', function() {
         $_.raw = body;
-        $_.document = $_.json = null;
+        delete $_['document'];
+        delete $_['json'];
         if (httpSuccess(response.statusCode)) {
           if (_.isJSON($_.headers['content-type'])) {
             $_.json = JSON.parse(body);

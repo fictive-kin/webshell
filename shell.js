@@ -377,9 +377,9 @@ function WebShell(stream) {
         
         if ($_._printResponse(response)) {
           if ($_.json) {
-            sys.puts(sys.inspect($_.json, true, undefined, true));
+            web_repl.rli.outputWrite(sys.inspect($_.json, true, undefined, true));
           } else {
-            sys.puts($_.raw)
+            web_repl.rli.outputWrite($_.raw);
           }
         }
 

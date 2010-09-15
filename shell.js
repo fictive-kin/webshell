@@ -25,15 +25,14 @@ var sys = require('sys'),
     _ = require('underscore')._;
     
 _.mixin({
-  isJSON: function(contentType) {
+  isJSON: function(headers) {
     var jsonHeaders = ['application/json', 'text/x-json'];
-    return contentType && _.include(jsonHeaders, contentType.split('; ')[0])
+    return headers['content-type'] && _.include(jsonHeaders, headers['content-type'].split('; ')[0])
   }
 });
 
 var $_ = {
   printHeaders: false,
-  printResponse: true,
   raw: null,
   response: null,
   status: 0,
@@ -43,6 +42,17 @@ var $_ = {
   requestHeaders: [],
   requestData: null,
   useCookies: true,
+  printStatus: true,
+  set printResponse(val) {
+    this.__printResponse = val;
+  },
+  _printResponse: function(resp) {
+    if (_.isFunction(this.__printResponse)) {
+      return this.__printResponse.call(null, resp);
+    } else {
+      return this.__printResponse;
+    }
+  },
   postToRequestData: function (post) {
     var data = querystring.parse(post);
     if (data) {
@@ -58,6 +68,10 @@ var $_ = {
     return s;
   }
 };
+
+$_.printResponse = function(response) {
+  return _.isJSON(response.headers);
+}
 
 var verbs = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD', 'TRACE', 'CONNECT'];
 
@@ -334,7 +348,7 @@ function WebShell(stream) {
     $_.requestHeaders = headers;
     request.end();
     request.on('response', function (response) {
-      if ($_.printResponse) {
+      if ($_.printStatus) {
         formatStatus(response.statusCode, u.href);
       }
       ctx.$_.status = response.statusCode;
@@ -356,8 +370,16 @@ function WebShell(stream) {
         delete $_['document'];
         delete $_['json'];
         if (httpSuccess(response.statusCode)) {
-          if (_.isJSON($_.headers['content-type'])) {
+          if (_.isJSON($_.headers)) {
             $_.json = JSON.parse(body);
+          }
+        }
+        
+        if ($_._printResponse(response)) {
+          if ($_.json) {
+            sys.puts(sys.inspect($_.json, true, undefined, true));
+          } else {
+            sys.puts($_.raw)
           }
         }
 

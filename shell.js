@@ -44,7 +44,8 @@ var $_ = {
   useCookies: true,
   printStatus: true,
   set printResponse(val) {
-    this.__printResponse = val;
+    delete this['__printResponse'];
+    Object.defineProperty(this, '__printResponse', {value: val, enumerable: false, configurable: true});
   },
   _printResponse: function(resp) {
     if (_.isFunction(this.__printResponse)) {

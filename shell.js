@@ -369,10 +369,8 @@ function WebShell(stream) {
         $_.raw = body;
         delete $_['document'];
         delete $_['json'];
-        if (httpSuccess(response.statusCode)) {
-          if (_.isJSON($_.headers)) {
-            $_.json = JSON.parse(body);
-          }
+        if (httpSuccess(response.statusCode) && _.isJSON($_.headers)) {
+          $_.json = JSON.parse(body);
         }
         
         if ($_._printResponse(response)) {

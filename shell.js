@@ -23,6 +23,13 @@ var sys = require('sys'),
     wsrc = require('wsrc'),
     wsreadline = require('wsreadline'),
     _ = require('underscore')._;
+    
+_.mixin({
+  isJSON: function(contentType) {
+    var jsonHeaders = ['application/json', 'text/x-json'];
+    return contentType && _.include(jsonHeaders, contentType.split('; ')[0])
+  }
+});
 
 var $_ = {
   printHeaders: false,
@@ -271,7 +278,6 @@ function WebShell(stream) {
     result = new ResultHolder(verb, urlStr);
     var u = parseURL(urlStr);
     var client = http.createClient(u.port, u.hostname, u.protocol === 'https:');
-    var jsonHeaders = ['application/json', 'text/x-json'];
     $_.previousVerb = verb;
     $_.previousUrl = urlStr;
 
@@ -349,7 +355,7 @@ function WebShell(stream) {
         $_.raw = body;
         $_.document = $_.json = null;
         if (httpSuccess(response.statusCode)) {
-          if ($_.headers['content-type'] && _.include(jsonHeaders, $_.headers['content-type'].split('; ')[0])) {
+          if (_.isJSON($_.headers['content-type'])) {
             $_.json = JSON.parse(body);
           }
         }

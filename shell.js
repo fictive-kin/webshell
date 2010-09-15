@@ -25,10 +25,16 @@ var sys = require('sys'),
     _ = require('underscore')._,
     env = require('env'),
     jquery = require('jquery');
+    
+_.mixin({
+  isJSON: function(headers) {
+    var jsonHeaders = ['application/json', 'text/x-json'];
+    return headers['content-type'] && _.include(jsonHeaders, headers['content-type'].split('; ')[0])
+  }
+});
 
 var $_ = {
   printHeaders: false,
-  printResponse: true,
   raw: null,
   response: null,
   status: 0,
@@ -38,6 +44,18 @@ var $_ = {
   requestHeaders: [],
   requestData: null,
   useCookies: true,
+  printStatus: true,
+  set printResponse(val) {
+    delete this['__printResponse'];
+    Object.defineProperty(this, '__printResponse', {value: val, enumerable: false, configurable: true});
+  },
+  _printResponse: function(resp) {
+    if (_.isFunction(this.__printResponse)) {
+      return this.__printResponse.call(null, resp);
+    } else {
+      return this.__printResponse;
+    }
+  },
   postToRequestData: function (post) {
     var data = querystring.parse(post);
     if (data) {
@@ -55,6 +73,10 @@ var $_ = {
 };
 
 var window = env.window;
+
+$_.printResponse = function(response) {
+  return _.isJSON(response.headers);
+}
 
 var verbs = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD', 'TRACE', 'CONNECT'];
 
@@ -279,7 +301,6 @@ function WebShell(stream) {
     result = new ResultHolder(verb, urlStr);
     var u = parseURL(urlStr);
     var client = http.createClient(u.port, u.hostname, u.protocol === 'https:');
-    var jsonHeaders = ['application/json', 'text/x-json'];
     var xmlHeaders = ['text/html', 'text/xml', 'application/xml', 'application/rss+xml', 'application/rdf+xml', 'application/atom+xml'];
     $_.previousVerb = verb;
     $_.previousUrl = urlStr;
@@ -340,7 +361,7 @@ function WebShell(stream) {
     $_.requestHeaders = headers;
     request.end();
     request.on('response', function (response) {
-      if ($_.printResponse) {
+      if ($_.printStatus) {
         formatStatus(response.statusCode, u.href);
       }
       ctx.$_.status = response.statusCode;
@@ -361,26 +382,34 @@ function WebShell(stream) {
       });
 
       response.on('end', function() {
+        var bufferOk = true;
         $_.raw = body;
-        $_.document = $_.json = null;
 
-        if (httpSuccess(response.statusCode)) {
-          if ($_.headers['content-type'] && _.include(jsonHeaders, $_.headers['content-type'].split('; ')[0])) {
-            $_.json = JSON.parse(body);
+        delete $_['document'];
+        delete $_['json'];
+        if (httpSuccess(response.statusCode) && _.isJSON($_.headers)) {
+          $_.json = JSON.parse(body);
+        }
+        
+        if ($_._printResponse(response)) {
+          if ($_.json) {
+            bufferOk = web_repl.rli.outputWrite(sys.inspect($_.json, false, undefined, true));
+            web_repl.rli.outputWrite("\n");
+          } else {
+            bufferOk = web_repl.rli.outputWrite($_.raw);
           }
-          if (_.include(xmlHeaders, $_.headers['content-type'].split('; ')[0])) {
-            $_.document = new env.DOMDocument(body);
-            window.document = $_.document;
+        }
+        if (_.include(xmlHeaders, $_.headers['content-type'].split('; ')[0])) {
+          $_.document = new env.DOMDocument(body);
+          window.document = $_.document;
 
-            ctx.$ = function(selector, context) {
-              var doSetup = !!env.window.document;
-              env.window.document = $_.document;
-              if (doSetup) {
-                jquery.setup(env.window);
-              }
-              return env.window.jQuery(selector, context);
+          ctx.$ = function(selector, context) {
+            var doSetup = !!env.window.document;
+            env.window.document = $_.document;
+            if (doSetup) {
+              jquery.setup(env.window);
             }
-
+            return env.window.jQuery(selector, context);
           }
         }
 
@@ -390,8 +419,12 @@ function WebShell(stream) {
         if (cb) {
           cb($_);
         }
-
-        web_repl.displayPrompt(true);
+        if (bufferOk) {
+          web_repl.displayPrompt(true);
+        } else {
+          web_repl.displayPromptOnDrain = true;
+          web_repl.suppressPrompt--;
+        }
       });
 
     });

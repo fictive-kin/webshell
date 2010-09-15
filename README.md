@@ -45,6 +45,17 @@ Simple HTTP requests
     '<!doctype html><html><head><meta http-equiv="conte'
     webshell> ^D
 
+Print HTTP response
+--------------------
+    The HTTP response itself can optionally be printed by setting
+    $_.printResponse.  If $_.printResponse is a function, it will
+    be called with a single argument - the response object.  Return
+    true/false depending on whether the response should be printed.
+    If $_.printResponse is not a function, its truth value will 
+    determine whether responses are printed.  By default 
+    $_.printResponse is a function which returns true for JSON
+    content-type responses and false for others.
+    
 Store HTTP response
 -------------------
 

@@ -377,7 +377,8 @@ function WebShell(stream) {
         
         if ($_._printResponse(response)) {
           if ($_.json) {
-            bufferOk = web_repl.rli.outputWrite(sys.inspect($_.json, true, undefined, true));
+            bufferOk = web_repl.rli.outputWrite(sys.inspect($_.json, false, undefined, true));
+            web_repl.rli.outputWrite("\n");
           } else {
             bufferOk = web_repl.rli.outputWrite($_.raw);
           }

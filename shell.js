@@ -44,7 +44,8 @@ var $_ = {
   useCookies: true,
   printStatus: true,
   set printResponse(val) {
-    this.__printResponse = val;
+    delete this['__printResponse'];
+    Object.defineProperty(this, '__printResponse', {value: val, enumerable: false, configurable: true});
   },
   _printResponse: function(resp) {
     if (_.isFunction(this.__printResponse)) {
@@ -369,10 +370,8 @@ function WebShell(stream) {
         $_.raw = body;
         delete $_['document'];
         delete $_['json'];
-        if (httpSuccess(response.statusCode)) {
-          if (_.isJSON($_.headers)) {
-            $_.json = JSON.parse(body);
-          }
+        if (httpSuccess(response.statusCode) && _.isJSON($_.headers)) {
+          $_.json = JSON.parse(body);
         }
         
         if ($_._printResponse(response)) {

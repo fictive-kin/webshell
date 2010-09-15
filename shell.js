@@ -367,6 +367,7 @@ function WebShell(stream) {
         body += chunk;
       });
       response.on('end', function() {
+        var bufferOk = true;
         $_.raw = body;
         delete $_['document'];
         delete $_['json'];
@@ -376,9 +377,9 @@ function WebShell(stream) {
         
         if ($_._printResponse(response)) {
           if ($_.json) {
-            web_repl.rli.outputWrite(sys.inspect($_.json, true, undefined, true));
+            bufferOk = web_repl.rli.outputWrite(sys.inspect($_.json, true, undefined, true));
           } else {
-            web_repl.rli.outputWrite($_.raw);
+            bufferOk = web_repl.rli.outputWrite($_.raw);
           }
         }
 
@@ -387,7 +388,12 @@ function WebShell(stream) {
         if (cb) {
           cb($_);
         }
-        web_repl.displayPrompt(true);
+        if (bufferOk) {
+          web_repl.displayPrompt(true);
+        } else {
+          web_repl.displayPromptOnDrain = true;
+          web_repl.suppressPrompt--;
+        }
       });
     });
     return result;

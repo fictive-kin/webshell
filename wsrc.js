@@ -30,10 +30,11 @@ function saveContext(name, $_) {
   });
   var toolbox = {};
   _.each(obj.toolbox, function(v, k) {
-    if (typeof v != 'function') {
+    if (typeof v === 'function') {
+      toolbox[k] = functionPrefix + v;
+    } else {
       toolbox[k] = v;
     }
-    toolbox[k] = functionPrefix + v;
   });
   obj.toolbox = toolbox;
   delete obj['cookies'];

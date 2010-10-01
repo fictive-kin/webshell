@@ -108,7 +108,7 @@ readline.Interface.prototype._ttyWrite = function (b) {
       if (b[1] === 91 && b[2] === 67) { // right arrow
         if (this.cursor != this.line.length) {
           this.cursor++;
-          var cols = process.binding('stdio').getColumns();
+          var cols = getColumns();
           // if we're at the first character of a new line:
           if (((this.cursor + this._promptLength) % cols) == 0) {
             // cursor to the left, down one line
@@ -154,7 +154,7 @@ readline.Interface.prototype._addHistory = function () {
 
 readline.Interface.prototype._renegotiatePrevLineParams = function () {
   if (this._prevLineParams) {
-    var cols = process.binding('stdio').getColumns();
+    var cols = stdio.getColumns();
     this._prevLineParams.cursorPos = (this._promptLength + this.cursor) % cols;
     this._prevLineParams.cursorRow = Math.floor((this._promptLength + this.cursor) / cols);
   }
@@ -166,7 +166,7 @@ readline.Interface.prototype._refreshLine  = function () {
 
   stdio.setRawMode(true);
 
-  var cols = process.binding('stdio').getColumns();
+  var cols = stdio.getColumns();
   var lineLen = this.line.length + this._promptLength;
   var rows = Math.floor(lineLen / cols);
   var cursorPos = (this._promptLength + this.cursor) % cols;

@@ -108,7 +108,7 @@ readline.Interface.prototype._ttyWrite = function (b) {
       if (b[1] === 91 && b[2] === 67) { // right arrow
         if (this.cursor != this.line.length) {
           this.cursor++;
-          var cols = getColumns();
+          var cols = stdio.getColumns();
           // if we're at the first character of a new line:
           if (((this.cursor + this._promptLength) % cols) == 0) {
             // cursor to the left, down one line

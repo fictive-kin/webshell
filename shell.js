@@ -341,11 +341,17 @@ function WebShell(stream) {
     if (u.search) {
       path += u.search;
     }
-    var request = client.request(verb, path, headers);
     if (content) {
       headers['Content-length'] = content.length;
+    } else {
+      // no content = no content-length header necessary
+      delete headers['Content-length'];
+    }
+    var request = client.request(verb, path, headers);
+    if (content) {
       request.write(content);
     }
+
     $_.requestHeaders = headers;
     request.end();
     request.on('response', function (response) {

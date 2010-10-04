@@ -186,8 +186,8 @@ HTTP verbs
     webshell> ^D
     sarcasm:~/src/webshell$ echo "testing some PUT data" > ~/test.txt
     sarcasm:~/src/webshell$ node shell.js 
-    webshell> $_.requestData = "/Users/sean/test.txt"
-    '/Users/sean/test.txt'
+    webshell> $_.fileToRequestData("/Users/sean/test.txt");
+    Set requestData to '/Users/sean/test.txt' (22 bytes, utf8)
     webshell> PUT http://files.seancoates.com/jsonifyrequest.php?one=1&two=2
     HTTP 200 http://files.seancoates.com/jsonifyrequest.php?one=1&two=2
     webshell> $_.json.verb

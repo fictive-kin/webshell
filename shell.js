@@ -62,6 +62,17 @@ var $_ = {
     }
     return false;
   },
+  fileToRequestData: function (filename, encoding) {
+    if (undefined == encoding) {
+      encoding = 'utf8';
+    }
+    try {
+      this.requestData = fs.readFileSync(filename, encoding);
+      console.log(stylize("Set requestData to '" + filename + "' (" + this.requestData.length + " bytes, " + encoding + ")", "yellow"));
+    } catch (e) {
+      console.log(stylize("Could not read " + filename, "red"));
+    }
+  },
   cookies: cookies,
   toolbox: {},
   evalFile: function (filename) {
@@ -325,13 +336,12 @@ function WebShell(stream) {
         }
         break;
       case 'PUT':
-        try {
-          content = fs.readFileSync($_.requestData);
-        } catch (e) {
-          sys.puts(stylize("Set $_.requestData to the filename to PUT", 'red'));
+        if (typeof $_.requestData !== 'string') {
+          console.log(stylize("$_.requestData must be a string", "red"));
           web_repl.displayPrompt(true);
           return false;
         }
+        content = $_.requestData;
         if (!headers['Content-type']) {
           headers['Content-type'] = 'application/octet-stream';
         }

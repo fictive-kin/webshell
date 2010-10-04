@@ -63,7 +63,9 @@ function loadContext(name, $_) {
       var toolbox = {};
       _.each($_.toolbox, function (v, k) {
         if (v.substring(0, functionPrefix.length) == functionPrefix) {
-          eval("toolbox[k] = " + v.slice(functionPrefix.length));
+          try {
+            eval("toolbox[k] = " + v.slice(functionPrefix.length));
+          } catch (e) {}
         } else {
           toolbox[k] = v;
         }

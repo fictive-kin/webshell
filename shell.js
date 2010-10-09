@@ -125,17 +125,6 @@ function WebShell(stream) {
     });
     web_repl.rli.complete(completion);
   };
-  var getObjectCompletion = function (cmd, obj) {
-    var completion = [];
-    _.each(obj, function (v, k) {
-      var completer = cmd + '.' + k;
-      if (_.isFunction(obj[k])) {
-        completer += '(';
-      }
-      completion.push(completer);
-    });
-    web_repl.rli.complete(completion);
-  };
 
   web_repl = new repl.REPLServer("webshell> ", stream);
   process.on('exit', function () {
@@ -166,36 +155,6 @@ function WebShell(stream) {
       getContextsCompletion('loadContext');
     } else if (web_repl.rli.line.substring(0, '$_.delContext('.length) == '$_.delContext(') {
       getContextsCompletion('delContext');
-    } else if (web_repl.rli.line.substring(0, '$_.'.length) == '$_.') {
-      var pieces = web_repl.rli.line.split('.');
-      // discard last piece:
-      pieces.pop();
-      switch (pieces.length) {
-        case 1: // "$_"
-          getObjectCompletion('$_', $_);
-          break;
-        case 2: // "$_.something"
-          if ($_[pieces[1]]) {
-            getObjectCompletion(pieces.join('.'), $_[pieces[1]]);
-          }
-          break;
-        case 3: // "$_.something.somethingelse"
-          if ($_[pieces[1]][pieces[2]]) {
-            getObjectCompletion(pieces.join('.'), $_[pieces[1]][pieces[2]]);
-          }
-          break;
-        case 4: // "$_.something.somethingelse.other"
-          if ($_[pieces[1]][pieces[2]][pieces[3]]) {
-            getObjectCompletion(pieces.join('.'), $_[pieces[1]][pieces[2]][pieces[3]]);
-          }
-          break;
-        default:
-          // too deep;
-      }
-    } else if (web_repl.rli.line.substring(0, '$_.toolbox.'.length) == '$_.toolbox.') {
-      getObjectCompletion('$_.toolbox', $_.toolbox);
-    } else if (web_repl.rli.line.substring(0, 3) == '$_.') {
-      getObjectCompletion('$_', $_);
     }
     return true;
   });

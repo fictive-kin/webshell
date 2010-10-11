@@ -11,11 +11,14 @@ require.paths.unshift(__dirname + '/deps');
 var webshellVersion = '0.2-dev';
 
 require.paths.unshift(__dirname);
+var WebShell = {
+  Util: {}
+};
+
 var sys = require('sys'),
     repl = require('repl'),
     wsrepl = require('wsrepl'),
     http = require('http'),
-    url = require('url'),
     fs = require('fs'),
     querystring = require('querystring'),
     stylize = require('colors').stylize,
@@ -24,22 +27,12 @@ var sys = require('sys'),
     wsreadline = require('wsreadline'),
     _ = require('underscore')._;
     
+_.extend(WebShell.Util, require('util'));
+
 _.mixin({
   isJSON: function(headers) {
     var jsonHeaders = ['application/json', 'text/x-json'];
     return headers['content-type'] && _.include(jsonHeaders, headers['content-type'].split('; ')[0])
-  },
-  httpSuccess: function(status) {
-    return 200 <= status && status < 300;
-  },
-  httpRedirection: function(status) {
-    return 300 <= status && status < 400;
-  },
-  httpClientError: function(status) {
-    return 400 <= status && status < 500;
-  },
-  httpServerError: function(status) {
-    return 500 <= status && status < 600;
   }
 });
 
@@ -105,7 +98,7 @@ var $_ = {
 
 var verbs = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD', 'TRACE', 'CONNECT'];
 
-function WebShell(stream) {
+WebShell.Shell = function(stream) {
   function responsePrinter($_, response) {
     var bufferOk = true;
     if (_.isFunction($_.toolbox.responsePrinter)) {
@@ -119,16 +112,6 @@ function WebShell(stream) {
     return bufferOk;
   }
   
-  function parseURL(urlStr, protocolHelp) {
-    var u = url.parse(urlStr);
-    if (protocolHelp && !u.protocol) {
-      u = url.parse('http://'+urlStr);
-    }
-    u.port = u.port || (u.protocol === 'https:' ? 443 : 80);
-    u.pathname = u.pathname || '/';
-    return u;
-  }
-
   oldParseREPLKeyword = repl.REPLServer.prototype.parseREPLKeyword;
 
   wsrc.loadContext('_previous', $_, true);
@@ -182,35 +165,15 @@ function WebShell(stream) {
   var ctx = web_repl.context;
   
   repl.REPLServer.prototype.parseREPLKeyword = this.parseREPLKeyword;
-
-  formatStatus = function(code, u) {
-    var url = formatUrl(u, true);
-    var msg = "HTTP " + code + " " + stylize(url, 'white');
-    if (_.httpSuccess(code)) {
-      console.log(stylize(msg, 'green'));
-    } else if (_.httpRedirection(code)) {
-      console.log(stylize(msg, 'yellow'));
-    } else if (_.httpClientError(code) || _.httpServerError(code)) {
-      console.log(stylize(msg, 'red'));
-    }
-  };
-  
-  normalizeName = function(name) {
-    return _.map(name.split('-'), function(s) { return s[0].toUpperCase() + s.slice(1, s.length); }).join('-');
-  };
-  
-  printHeader = function(value, name) {
-    sys.puts(normalizeName(name) + ": " + value);
-  };
   
   ctx.$_ = $_;
   
   doRedirect = function() {
     var location = $_.headers.location;
     if (location) {
-      var locationUrl = parseURL(location, false);
+      var locationUrl = WebShell.Util.parseURL(location, false);
       if (!locationUrl.protocol) {
-        var prevUrl = parseURL($_.previousUrl);
+        var prevUrl = WebShell.Util.parseURL($_.previousUrl);
         // a relative URL, auto-populate with previous URL's info
         locationUrl.protocol = prevUrl.protocol;
         locationUrl.hostname = prevUrl.hostname;
@@ -220,7 +183,7 @@ function WebShell(stream) {
         if (prevUrl.port) {
           locationUrl.port = prevUrl.port;
         }
-        location = url.format(locationUrl);
+        location = WebShell.Util.formtUrl(locationUrl);
       }
       doHttpReq($_.previousVerb, location);
     } else {
@@ -239,10 +202,6 @@ function WebShell(stream) {
   };
   ctx.$_.delContext = function (name) { wsrc.delContext(name, $_); };
   
-  function base64Encode(str) {
-    return (new Buffer(str, 'ascii')).toString('base64');
-  }
-  
   function makeHeaders(url) {
     var hostHeader = url.hostname;
     if (url.protocol === 'https:' && url.port !== 443) {
@@ -258,7 +217,7 @@ function WebShell(stream) {
     };
 
     if (url.auth) {
-      headers['authorization'] = 'Basic ' + base64Encode(url.auth);
+      headers['authorization'] = 'Basic ' + WebShell.Util.base64Encode(url.auth);
     }
 
     if ($_.useCookies) {
@@ -290,20 +249,8 @@ function WebShell(stream) {
     web_repl.suppressPrompt++;
     result = new ResultHolder(verb, urlStr);
 
-    var u = parseURL(urlStr);
-    var prevU = parseURL($_.previousUrl || 'http://example.com');
+    var u = WebShell.Util.parseURL(urlStr);
 
-    // check for prev host (and no host on this req) == relative request
-    if (!u.protocol && !u.hostname) {
-      u.protocol = prevU.protocol;
-      u.hostname = prevU.hostname;
-      u.slashes = prevU.slashes;
-      u.port = prevU.port;
-      if (u.pathname.substr(0,1) != '/') {
-        u.pathname = '/' + u.pathname;
-      }
-    }
- 
     var client = http.createClient(u.port, u.hostname, u.protocol === 'https:');
     var baseHeaders = _.clone($_.requestHeaders);
     var lowerHeaders = {};
@@ -389,12 +336,12 @@ function WebShell(stream) {
     request.end();
     request.on('response', function (response) {
       if ($_.printStatus) {
-        formatStatus(response.statusCode, u);
+        WebShell.Util.formatStatus(response.statusCode, u.href);
       }
       ctx.$_.status = response.statusCode;
 
       if ($_.printHeaders) {
-        _.each(response.headers, printHeader);
+        _.each(response.headers, WebShell.Util.printHeader);
       }
       ctx.$_.headers = response.headers;
       if ($_.useCookies) {
@@ -410,12 +357,12 @@ function WebShell(stream) {
         $_.raw = body;
         delete $_['document'];
         delete $_['json'];
-        if (_.httpSuccess(response.statusCode) && _.isJSON($_.headers)) {
+        if (response.statusCode >= 200 && response.statusCode < 300 && _.isJSON($_.headers)) {
           $_.json = JSON.parse(body);
         }
         
         if ($_.printResponse) {
-          bufferOk = responsePrinter($_, response);
+          bufferOk = WebShell.Util.responsePrinter($_, response);
         }
 
         _.extend(result, {raw: $_.raw, headers: $_.headers, statusCode: $_.status, json: $_.json});
@@ -439,10 +386,9 @@ function WebShell(stream) {
       return doHttpReq(v, url, cb);
     };
   });
-  
-}
+};
 
-WebShell.prototype = {
+WebShell.Shell.prototype = {
   parseREPLKeyword: function(cmd) {
     if (oldParseREPLKeyword.call(this, cmd)) {
       return true;
@@ -467,7 +413,7 @@ WebShell.prototype = {
   }
 };
 
-var shell = new WebShell();
+var shell = new WebShell.Shell;
 
 process.on('uncaughtException', function (err) {
   console.log(stylize('Caught exception: ' + err, 'red'));

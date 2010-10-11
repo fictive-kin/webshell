@@ -28,6 +28,18 @@ _.mixin({
   isJSON: function(headers) {
     var jsonHeaders = ['application/json', 'text/x-json'];
     return headers['content-type'] && _.include(jsonHeaders, headers['content-type'].split('; ')[0])
+  },
+  httpSuccess: function(status) {
+    return 200 <= status && status < 300;
+  },
+  httpRedirection: function(status) {
+    return 300 <= status && status < 400;
+  },
+  httpClientError: function(status) {
+    return 400 <= status && status < 500;
+  },
+  httpServerError: function(status) {
+    return 500 <= status && status < 600;
   }
 });
 
@@ -64,17 +76,6 @@ var $_ = {
   useCookies: true,
   printStatus: true,
   printResponse: true,
-  // set printResponse(val) {
-  //   delete this['__printResponse'];
-  //   Object.defineProperty(this, '__printResponse', {value: val, enumerable: false, configurable: true});
-  // },
-  // _printResponse: function(resp) {
-  //   if (_.isFunction(this.__printResponse)) {
-  //     return this.__printResponse.call(null, resp);
-  //   } else {
-  //     return this.__printResponse;
-  //   }
-  // },
   postToRequestData: function (post) {
     var data = querystring.parse(post);
     if (data) {
@@ -102,10 +103,6 @@ var $_ = {
   }
 };
 
-// $_.printResponse = function(response) {
-//   return _.isJSON(response.headers);
-// }
-// 
 var verbs = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD', 'TRACE', 'CONNECT'];
 
 function WebShell(stream) {
@@ -120,22 +117,6 @@ function WebShell(stream) {
       }
     }
     return bufferOk;
-  }
-  
-  function httpSuccess(status) {
-    return 200 <= status && status < 300;
-  }
-  
-  function httpRedirection(status) {
-    return 300 <= status && status < 400;
-  }
-  
-  function httpClientError(status) {
-    return 400 <= status && status < 500;
-  }
-  
-  function httpServerError(status) {
-    return 500 <= status && status < 600;
   }
   
   function parseURL(urlStr, protocolHelp) {
@@ -205,11 +186,11 @@ function WebShell(stream) {
   formatStatus = function(code, u) {
     var url = formatUrl(u, true);
     var msg = "HTTP " + code + " " + stylize(url, 'white');
-    if (httpSuccess(code)) {
+    if (_.httpSuccess(code)) {
       console.log(stylize(msg, 'green'));
-    } else if (httpRedirection(code)) {
+    } else if (_.httpRedirection(code)) {
       console.log(stylize(msg, 'yellow'));
-    } else if (httpClientError(code) || httpServerError(code)) {
+    } else if (_.httpClientError(code) || _.httpServerError(code)) {
       console.log(stylize(msg, 'red'));
     }
   };
@@ -429,7 +410,7 @@ function WebShell(stream) {
         $_.raw = body;
         delete $_['document'];
         delete $_['json'];
-        if (httpSuccess(response.statusCode) && _.isJSON($_.headers)) {
+        if (_.httpSuccess(response.statusCode) && _.isJSON($_.headers)) {
           $_.json = JSON.parse(body);
         }
         

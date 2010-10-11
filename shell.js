@@ -43,17 +43,18 @@ var $_ = {
   requestData: null,
   useCookies: true,
   printStatus: true,
-  set printResponse(val) {
-    delete this['__printResponse'];
-    Object.defineProperty(this, '__printResponse', {value: val, enumerable: false, configurable: true});
-  },
-  _printResponse: function(resp) {
-    if (_.isFunction(this.__printResponse)) {
-      return this.__printResponse.call(null, resp);
-    } else {
-      return this.__printResponse;
-    }
-  },
+  printResponse: true,
+  // set printResponse(val) {
+  //   delete this['__printResponse'];
+  //   Object.defineProperty(this, '__printResponse', {value: val, enumerable: false, configurable: true});
+  // },
+  // _printResponse: function(resp) {
+  //   if (_.isFunction(this.__printResponse)) {
+  //     return this.__printResponse.call(null, resp);
+  //   } else {
+  //     return this.__printResponse;
+  //   }
+  // },
   postToRequestData: function (post) {
     var data = querystring.parse(post);
     if (data) {
@@ -81,13 +82,26 @@ var $_ = {
   }
 };
 
-$_.printResponse = function(response) {
-  return _.isJSON(response.headers);
-}
-
+// $_.printResponse = function(response) {
+//   return _.isJSON(response.headers);
+// }
+// 
 var verbs = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD', 'TRACE', 'CONNECT'];
 
 function WebShell(stream) {
+  function responsePrinter($_, response) {
+    var bufferOk = true;
+    if (_.isFunction($_.toolbox.responsePrinter)) {
+      bufferOk = $_.toolbox.responsePrinter($_, response);
+    } else {
+      if ($_.json) {
+        bufferOk = web_repl.rli.outputWrite(sys.inspect($_.json, false, undefined, true));
+        web_repl.rli.outputWrite("\n");
+      }
+    }
+    return bufferOk;
+  }
+  
   function httpSuccess(status) {
     return 200 <= status && status < 300;
   }
@@ -350,13 +364,8 @@ function WebShell(stream) {
           $_.json = JSON.parse(body);
         }
         
-        if ($_._printResponse(response)) {
-          if ($_.json) {
-            bufferOk = web_repl.rli.outputWrite(sys.inspect($_.json, false, undefined, true));
-            web_repl.rli.outputWrite("\n");
-          } else {
-            bufferOk = web_repl.rli.outputWrite($_.raw);
-          }
+        if ($_.printResponse) {
+          bufferOk = responsePrinter($_, response);
         }
 
         _.extend(result, {raw: $_.raw, headers: $_.headers, statusCode: $_.status, json: $_.json});

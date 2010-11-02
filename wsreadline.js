@@ -79,7 +79,14 @@ readline.Interface.prototype._ttyWrite = function (b) {
 
     case 3: // control-c
       this.output.write("^C");
-      this._hardClosed = true;
+      if (this.cursor === 0 && this.line.length === 0) { // only at start
+        this._hardClosed = true;
+      } else {
+        this.line = '';
+        this.cursor = 0;
+        this._refreshLine();
+      }
+      return;
       break;
 
     case 4: // control-d, delete right or EOF

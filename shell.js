@@ -291,7 +291,11 @@ function WebShell(stream) {
         $_.requestHeaders = {};
     }
     _.each($_.requestHeaders, function(v, k) {
-      if (k.toLowerCase() != 'host') { // host is provided by makeHeaders()
+      if (
+        // these are provided by makeHeaders()
+        k.toLowerCase() != 'host'
+        && k.toLowerCase() != 'authorization'
+      ) {
         headers[k] = v;
       }
     });

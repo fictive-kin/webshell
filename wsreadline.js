@@ -68,7 +68,7 @@ readline.Interface.prototype.complete = function(input) {
 }
 
 readline.Interface.prototype.outputWrite = function (msg) {
-  this.output.write(msg);
+  return this.output.write(msg);
 };
 
 readline.Interface.prototype.node_ttyWrite = readline.Interface.prototype._ttyWrite;

@@ -116,8 +116,8 @@ function WebShell(stream) {
       bufferOk = $_.toolbox.responsePrinter($_, response);
     } else {
       if ($_.json) {
-        bufferOk = web_repl.rli.outputWrite(sys.inspect($_.json, false, undefined, true));
-        web_repl.rli.outputWrite("\n");
+        web_repl.rli.outputWrite(sys.inspect($_.json, false, undefined, true));
+        bufferOk = web_repl.rli.outputWrite("\n");
       }
     }
     return bufferOk;

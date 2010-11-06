@@ -250,7 +250,13 @@ function WebShell(stream) {
   ctx.$_.follow = doRedirect;
 
   ctx.$_.saveContext = function (name) { wsrc.saveContext(name, $_); };
-  ctx.$_.loadContext = function (name) { wsrc.loadContext(name, $_); };
+  ctx.$_.loadContext = function (name) {
+    wsrc.loadContext(name, $_);
+    if ($_.previousUrl) {
+      u = parseURL($_.previousUrl);
+      web_repl.prompt = formatUrl(u, false) + ' > ';
+    }
+  };
   ctx.$_.delContext = function (name) { wsrc.delContext(name, $_); };
   
   function base64Encode(str) {

@@ -317,6 +317,7 @@ function WebShell(stream) {
       u.protocol = prevU.protocol;
       u.hostname = prevU.hostname;
       u.slashes = prevU.slashes;
+      u.port = prevU.port;
     }
  
     var client = http.createClient(u.port, u.hostname, u.protocol === 'https:');

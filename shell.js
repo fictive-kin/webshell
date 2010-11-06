@@ -31,6 +31,27 @@ _.mixin({
   }
 });
 
+var formatUrl = function (u, includePath, showPassword) {
+  var auth = '';
+  var port = '';
+  if (u.auth) {
+    var port = '';
+    if (('http' == u.protocol && 80 != u.port) || ('https' == u.protocol && 443 != u.port)) {
+      port = ':' + u.port;
+    }
+    if (showPassword) {
+      auth = u.auth + '@';
+    } else {
+      auth = u.auth.split(':')[0] + ':***@';
+    }
+  }
+  var url = u.protocol + (u.slashes ? '//' : '') + auth + u.hostname + port;
+  if (includePath) {
+    url += u.pathname;
+  }
+  return url;
+}
+
 var $_ = {
   printHeaders: false,
   raw: null,
@@ -140,7 +161,12 @@ function WebShell(stream) {
     web_repl.rli.complete(completion);
   };
 
-  web_repl = new repl.REPLServer("webshell> ", stream);
+  if ($_.previousUrl) {
+    var prevU = parseURL($_.previousUrl);
+    web_repl = new repl.REPLServer(formatUrl(prevU, false) + ' > ', stream);
+  } else {
+    web_repl = new repl.REPLServer("webshell> ", stream);
+  }
   process.on('exit', function () {
     if (web_repl.rli._hardClosed) {
       var rc = wsrc.get();
@@ -176,17 +202,9 @@ function WebShell(stream) {
   var ctx = web_repl.context;
   
   repl.REPLServer.prototype.parseREPLKeyword = this.parseREPLKeyword;
+
   formatStatus = function(code, u) {
-    if (u.auth) {
-      var port = '';
-      if (('http' == u.protocol && 80 != u.port) || ('https' == u.protocol && 443 != u.port)) {
-        port = ':' + u.port;
-      }
-      var auth = u.auth.split(':')[0] + ':***@';
-      var url = u.protocol + (u.slashes ? '//' : '') + auth + u.hostname + port + u.pathname;
-    } else {
-      var url = u.href;
-    }
+    var url = formatUrl(u, true);
     var msg = "HTTP " + code + " " + stylize(url, 'white');
     if (httpSuccess(code)) {
       console.log(stylize(msg, 'green'));
@@ -285,7 +303,17 @@ function WebShell(stream) {
   doHttpReq = function(verb, urlStr, cb) {
     web_repl.suppressPrompt++;
     result = new ResultHolder(verb, urlStr);
+
     var u = parseURL(urlStr);
+    var prevU = parseURL($_.previousUrl);
+
+    // check for prev host (and no host on this req)
+    if (!u.protocol && !u.hostname) {
+      u.protocol = prevU.protocol;
+      u.hostname = prevU.hostname;
+      u.slashes = prevU.slashes;
+    }
+ 
     var client = http.createClient(u.port, u.hostname, u.protocol === 'https:');
     var baseHeaders = _.clone($_.requestHeaders);
     var lowerHeaders = {};
@@ -297,7 +325,6 @@ function WebShell(stream) {
     delete baseHeaders.cookie; // provided by makeHeaders()
 
     // check for prev auth
-    var prevU = parseURL($_.previousUrl);
     if (!u.auth && prevU.auth) {
       if ((prevU.hostname == u.hostname)) {
         u.auth = prevU.auth; // re-use previous auth
@@ -307,7 +334,7 @@ function WebShell(stream) {
     }
 
     $_.previousVerb = verb;
-    $_.previousUrl = urlStr;
+    $_.previousUrl = formatUrl(u, true, true);
 
     var content = null;
     var headers = makeHeaders(u);
@@ -359,6 +386,10 @@ function WebShell(stream) {
       // no content = no content-length header necessary
       delete headers['Content-length'];
     }
+
+    // set prompt
+    web_repl.prompt = formatUrl(u, false) + ' > ';
+
     var request = client.request(verb, path, headers);
     if (content) {
       request.write(content);

@@ -176,7 +176,17 @@ function WebShell(stream) {
   var ctx = web_repl.context;
   
   repl.REPLServer.prototype.parseREPLKeyword = this.parseREPLKeyword;
-  formatStatus = function(code, url) {
+  formatStatus = function(code, u) {
+    if (u.auth) {
+      var port = '';
+      if (('http' == u.protocol && 80 != u.port) || ('https' == u.protocol && 443 != u.port)) {
+        port = ':' + u.port;
+      }
+      var auth = u.auth.split(':')[0] + ':***@';
+      var url = u.protocol + (u.slashes ? '//' : '') + auth + u.hostname + port + u.pathname;
+    } else {
+      var url = u.href;
+    }
     var msg = "HTTP " + code + " " + stylize(url, 'white');
     if (httpSuccess(code)) {
       console.log(stylize(msg, 'green'));
@@ -277,6 +287,25 @@ function WebShell(stream) {
     result = new ResultHolder(verb, urlStr);
     var u = parseURL(urlStr);
     var client = http.createClient(u.port, u.hostname, u.protocol === 'https:');
+    var baseHeaders = _.clone($_.requestHeaders);
+    var lowerHeaders = {};
+    _.map(baseHeaders, function (v, k) {
+      lowerHeaders[k.toLowerCase()] = v;
+    });
+    baseHeaders = lowerHeaders;
+    delete baseHeaders.host; // provided by makeHeaders()
+    delete baseHeaders.cookie; // provided by makeHeaders()
+
+    // check for prev auth
+    var prevU = parseURL($_.previousUrl);
+    if (!u.auth && prevU.auth) {
+      if ((prevU.hostname == u.hostname)) {
+        u.auth = prevU.auth; // re-use previous auth
+      } else {
+        delete baseHeaders.authorization; // different hostname = delete auth
+      }
+    }
+
     $_.previousVerb = verb;
     $_.previousUrl = urlStr;
 
@@ -290,14 +319,10 @@ function WebShell(stream) {
         //       to reset things like the Accept header
         $_.requestHeaders = {};
     }
-    _.each($_.requestHeaders, function(v, k) {
-      if (
-        // these are provided by makeHeaders()
-        k.toLowerCase() != 'host'
-        && k.toLowerCase() != 'authorization'
-      ) {
-        headers[k] = v;
-      }
+
+    _.each(baseHeaders, function(v, k) {
+      // these are provided by makeHeaders()
+      headers[k] = v;
     });
 
     switch (verb) {
@@ -343,7 +368,7 @@ function WebShell(stream) {
     request.end();
     request.on('response', function (response) {
       if ($_.printStatus) {
-        formatStatus(response.statusCode, u.href);
+        formatStatus(response.statusCode, u);
       }
       ctx.$_.status = response.statusCode;
 

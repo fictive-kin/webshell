@@ -272,19 +272,19 @@ function WebShell(stream) {
     }
 
     var headers = {
-      'Host': hostHeader,
-      'User-Agent': 'Webshell/' + webshellVersion + ' node.js/' + process.version,
-      'Accept': 'application/json, */*'
+      'host': hostHeader,
+      'user-agent': 'Webshell/' + webshellVersion + ' node.js/' + process.version,
+      'accept': 'application/json, */*'
     };
 
     if (url.auth) {
-      headers['Authorization'] = 'Basic ' + base64Encode(url.auth);
+      headers['authorization'] = 'Basic ' + base64Encode(url.auth);
     }
 
     if ($_.useCookies) {
       var cookie = cookies.headerFor(url);
       if (cookie) {
-        headers['Cookie'] = cookie;
+        headers['cookie'] = cookie;
       }
     }
     return headers;
@@ -362,10 +362,10 @@ function WebShell(stream) {
       case 'POST':
         if (typeof $_.requestData == "object") {
           content = querystring.stringify($_.requestData);
-          headers['Content-type'] = 'application/x-www-form-urlencoded';
+          headers['content-type'] = 'application/x-www-form-urlencoded';
         } else {
-          if (!headers['Content-type']) {
-            headers['Content-type'] = 'application/x-www-form-urlencoded';
+          if (!headers['content-type']) {
+            headers['content-type'] = 'application/x-www-form-urlencoded';
           }
           content = $_.requestData;
         }
@@ -377,8 +377,8 @@ function WebShell(stream) {
           return false;
         }
         content = $_.requestData;
-        if (!headers['Content-type']) {
-          headers['Content-type'] = 'application/octet-stream';
+        if (!headers['content-type']) {
+          headers['content-type'] = 'application/octet-stream';
         }
         break;
     }
@@ -387,10 +387,10 @@ function WebShell(stream) {
       path += u.search;
     }
     if (content) {
-      headers['Content-length'] = content.length;
+      headers['content-length'] = content.length;
     } else {
       // no content = no content-length header necessary
-      delete headers['Content-length'];
+      delete headers['content-length'];
     }
 
     // set prompt

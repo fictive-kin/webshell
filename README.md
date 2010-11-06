@@ -265,22 +265,22 @@ You can inspect request and response headers, easily.
 You can also arbitrarily set request headers.
 
     http://localhost > GET http://localhost:5984/
-    HTTP 200 http://localhost/
-    http://localhost > $_.json
+    HTTP 200 http://localhost:5984/
+    http://localhost:5984 > $_.json
     { couchdb: 'Welcome', version: '1.0.1' }
-    http://localhost > $_.json.version
+    http://localhost:5984 > $_.json.version
     '1.0.1'
-    http://localhost > $_.headers['content-type']
+    http://localhost:5984 > $_.headers['content-type']
     'application/json'
-    http://localhost > $_.requestHeaders.accept
+    http://localhost:5984 > $_.requestHeaders.accept
     'application/json, */*'
 
-    http://localhost > $_.requestHeaders.accept = '*/*' // not json explicitly
+    http://localhost:5984 > $_.requestHeaders.accept = '*/*' // not json explicitly
     '*/*'
-    http://localhost > GET http://localhost:5984/
-    HTTP 200 http://localhost/
-    http://localhost > $_.headers['content-type']
+    http://localhost:5984 > GET http://localhost:5984/
+    HTTP 200 http://localhost:5984/
+    http://localhost:5984 > $_.headers['content-type']
     'text/plain;charset=utf-8'
-    http://localhost > $_.json
-    http://localhost > // no JSON )-:
+    http://localhost:5984 > $_.json
+    http://localhost:5984 > // no JSON )-:
 

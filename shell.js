@@ -8,7 +8,7 @@
 /* vim: sw=2 ts=2 noet */
 
 require.paths.unshift(__dirname + '/deps');
-var webshellVersion = '0.1-dev';
+var webshellVersion = '0.2-dev';
 
 require.paths.unshift(__dirname);
 var sys = require('sys'),

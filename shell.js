@@ -34,11 +34,10 @@ _.mixin({
 var formatUrl = function (u, includePath, showPassword) {
   var auth = '';
   var port = '';
+  if (('http:' == u.protocol && 80 != u.port) || ('https:' == u.protocol && 443 != u.port)) {
+    port = ':' + u.port;
+  }
   if (u.auth) {
-    var port = '';
-    if (('http' == u.protocol && 80 != u.port) || ('https' == u.protocol && 443 != u.port)) {
-      port = ':' + u.port;
-    }
     if (showPassword) {
       auth = u.auth + '@';
     } else {

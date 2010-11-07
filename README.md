@@ -13,8 +13,8 @@ Simple HTTP requests
 --------------------
 Webshell supports all of the HTTP verbs in a simple to use syntax. The
 response's status code (and the requested URL) are printed. Headers are
-are expanded to local variables, and they can be inspected. Additionally,
-if the response suggests a redirect to anotehr URL, the `$_.follow()` function
+expanded to local variables, and they can be inspected. Additionally,
+if the response suggests a redirect to another URL, the `$_.follow()` function
 can be called for easy location following.
 
     http://localhost > GET http://google.com/
@@ -56,22 +56,6 @@ applicable) are displayed in the prompt.
     { one: 1, two: 2, three: 3 }
 
 
-Store HTTP response
--------------------
-The results of HTTP verb commands can be stored in local variables, just like
-everything in the REPL.
-
-    http://localhost > result = $_.get('http://fictivekin.com')
-    GET http://fictivekin.com
-    HTTP 200 http://fictivekin.com/
-    http://www.google.com > result2 = $_.get('http://www.google.ca')
-    GET http://www.google.ca
-    HTTP 200 http://www.google.ca/
-    http://www.google.ca > result.headers['content-type']
-    'text/html'
-    http://www.google.ca > result2.headers['content-type']
-    'text/html; charset=ISO-8859-1'
-
 JSON processing
 ---------------
 If the server returns a JSON content-type, the response is automatically
@@ -85,12 +69,12 @@ processed, and the result is stored in `$_.json`.
 Print response
 --------------------
 The JSON response can optionally be automatically printed by setting
-`$_.printResponse`. If $_.printResponse is a function, it will be called with
-a single argument: the response object.  It should return true or false,
-depending on whether the response should be printed. If $_.printResponse is
+`$_.printResponse`. If `$_.printResponse` is a function, it will be called with
+a single argument: the response object.  It should return `true` or `false`,
+depending on whether the response should be printed. If `$_.printResponse` is
 not a function, its truth value will determine whether responses are printed.
-By default $_.printResponse is a function which returns true for JSON
-content-type responses and false for others.
+By default `$_.printResponse` is a function which returns `true` for JSON
+content-type responses and `false` for others.
 
     http://localhost > GET http://files.seancoates.com/test_json.php
     HTTP 200 http://files.seancoates.com/test_json.php
@@ -242,6 +226,21 @@ All of the HTTP verbs are available. To include data in the request body, set
     'testing some PUT data\n'
     http://localhost > 
 
+The results of HTTP verb commands can be stored in local variables, just like
+everything in the REPL.
+
+    http://localhost > result = $_.get('http://fictivekin.com')
+    GET http://fictivekin.com
+    HTTP 200 http://fictivekin.com/
+    http://www.google.com > result2 = $_.get('http://www.google.ca')
+    GET http://www.google.ca
+    HTTP 200 http://www.google.ca/
+    http://www.google.ca > result.headers['content-type']
+    'text/html'
+    http://www.google.ca > result2.headers['content-type']
+    'text/html; charset=ISO-8859-1'
+
+
 HTTP headers
 ------------
 You can inspect request and response headers, easily.
@@ -291,7 +290,7 @@ are serialized (converted to strings) on save, and deserialized (converted back
 to functions) on load.
 
 Additionally, the HTTP verbs are the names of properties of the `$_` object
-(e.g. GET is `$_.get`). These functions can be called programmatically, and
+(e.g. `GET` is `$_.get`). These functions can be called programmatically, and
 they take an optional second parameter for a callback that runs when the
 request is complete.
 

@@ -284,3 +284,23 @@ You can also arbitrarily set request headers.
     http://localhost:5984 > $_.json
     http://localhost:5984 > // no JSON )-:
 
+Toolbox and callbacks
+---------------------
+Functions placed in `$_.toolbox` will be stored in your current context. They
+are serialized (converted to strings) on save, and deserialized (converted back
+to functions) on load.
+
+Additionally, the HTTP verbs are the names of properties of the `$_` object
+(e.g. GET is `$_.get`). These functions can be called programmatically, and
+they take an optional second parameter for a callback that runs when the
+request is complete.
+
+    http://localhost > $_.toolbox.lastTweet = function (username) { $_.get('http://twitter.com/statuses/user_timeline/' + username + '.json', function () { if ($_.status == '200') { console.log("Last tweet: " + $_.json[0].text); }}); }
+    [Function]
+    http://twitter.com > $_.toolbox.lastTweet('coates')
+    HTTP 200 http://twitter.com/statuses/user_timeline/coates.json
+    Last tweet: Doing a bunch of work on Webshell. Fixed some bugs, added relative URLs, and re-writing the docs. http://github.com/fictivekin/webshell
+    http://twitter.com > $_.toolbox.lastTweet('sirevanhaas')
+    HTTP 200 http://twitter.com/statuses/user_timeline/sirevanhaas.json
+    Last tweet: If only Firefox extensions were as simple as Chrome/Safari extensions
+

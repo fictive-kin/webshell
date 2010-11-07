@@ -303,4 +303,7 @@ request is complete.
     http://twitter.com > $_.toolbox.lastTweet('sirevanhaas')
     HTTP 200 http://twitter.com/statuses/user_timeline/sirevanhaas.json
     Last tweet: If only Firefox extensions were as simple as Chrome/Safari extensions
+    http://twitter.com > $_.toolbox.lastTweet('userwhodoesntexist')
+    HTTP 404 http://twitter.com/statuses/user_timeline/userwhodoesntexist.json
+    http://twitter.com > 
 

@@ -295,7 +295,12 @@ Additionally, the HTTP verbs are the names of properties of the `$_` object
 they take an optional second parameter for a callback that runs when the
 request is complete.
 
-    http://localhost > $_.toolbox.lastTweet = function (username) { $_.get('http://twitter.com/statuses/user_timeline/' + username + '.json', function () { if ($_.status == '200') { console.log("Last tweet: " + $_.json[0].text); }}); }
+    http://localhost > $_.toolbox.lastTweet = function (username) {
+    ...   $_.get('http://twitter.com/statuses/user_timeline' + username + '.json',
+    ...   function () { if ($_.status == '200') {
+    ...   console.log("Last tweet: " + $_.json[0].text)
+    ...   }});
+    ...   }
     [Function]
     http://twitter.com > $_.toolbox.lastTweet('coates')
     HTTP 200 http://twitter.com/statuses/user_timeline/coates.json

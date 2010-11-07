@@ -312,12 +312,15 @@ function WebShell(stream) {
     var u = parseURL(urlStr);
     var prevU = parseURL($_.previousUrl);
 
-    // check for prev host (and no host on this req)
+    // check for prev host (and no host on this req) == relative request
     if (!u.protocol && !u.hostname) {
       u.protocol = prevU.protocol;
       u.hostname = prevU.hostname;
       u.slashes = prevU.slashes;
       u.port = prevU.port;
+      if (u.pathname.substr(0,1) != '/') {
+        u.pathname = '/' + u.pathname;
+      }
     }
  
     var client = http.createClient(u.port, u.hostname, u.protocol === 'https:');

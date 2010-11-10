@@ -310,7 +310,7 @@ function WebShell(stream) {
     result = new ResultHolder(verb, urlStr);
 
     var u = parseURL(urlStr);
-    var prevU = parseURL($_.previousUrl);
+    var prevU = parseURL($_.previousUrl || 'http://example.com');
 
     // check for prev host (and no host on this req) == relative request
     if (!u.protocol && !u.hostname) {

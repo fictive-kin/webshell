@@ -5,7 +5,7 @@
 /* response data will be put into the global variable $_ */
 /* raw response data: $_.raw */
 /* headers: $_.headers */
-/* vim: sw=2 ts=2 noet */
+/* vim: sw=2 ts=2 et */
 
 require.paths.unshift(__dirname + '/deps');
 var webshellVersion = '0.2-dev';

@@ -150,7 +150,7 @@ function WebShell(stream) {
 
   oldParseREPLKeyword = repl.REPLServer.prototype.parseREPLKeyword;
 
-  wsrc.loadContext('_previous', $_);
+  wsrc.loadContext('_previous', $_, true);
 
   var getContextsCompletion = function (cmd) {
     var completion = [];

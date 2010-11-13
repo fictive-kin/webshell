@@ -52,7 +52,7 @@ function saveContext(name, $_) {
 }
 
 
-function loadContext(name, $_) {
+function loadContext(name, $_, ignoreError) {
   var rc = getRC();
   if (rc.contexts[name]) {
     _.each(rc.contexts[name], function (v, k) {
@@ -75,7 +75,7 @@ function loadContext(name, $_) {
     $_.cookies.__set_raw__($_.__cookieJar);
     delete $_['__cookieJar'];
     sys.puts("Loaded context: " + name);
-  } else {
+  } else if (!ignoreError) {
     sys.puts(stylize("Could not load context: " + name, 'red'));
   }
 }

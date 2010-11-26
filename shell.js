@@ -26,7 +26,7 @@ var util = require('util'),
     wsrc = require('wsrc'),
     wsreadline = require('wsreadline'),
     _ = require('underscore')._;
-    
+
 _.extend(WebShell.Util, require('wsutil'));
 
 _.mixin({
@@ -96,7 +96,7 @@ WebShell.Shell = function(stream) {
   } else {
     web_repl = new repl.REPLServer("webshell> ", stream);
   }
-  
+
   this.injectLineListener(web_repl);
 
   process.on('exit', function () {
@@ -132,11 +132,11 @@ WebShell.Shell = function(stream) {
   });
 
   var ctx = web_repl.context;
-  
+
   repl.REPLServer.prototype.parseREPLKeyword = this.parseREPLKeyword;
-  
+
   ctx.$_ = $_;
-  
+
   doRedirect = function() {
     var location = $_.headers.location;
     if (location) {
@@ -170,7 +170,7 @@ WebShell.Shell = function(stream) {
     }
   };
   ctx.$_.delContext = function (name) { wsrc.delContext(name, $_); };
-  
+
   function makeHeaders(url) {
     var hostHeader = url.hostname;
     if (url.protocol === 'https:' && url.port !== 443) {
@@ -329,7 +329,7 @@ WebShell.Shell = function(stream) {
         if (response.statusCode >= 200 && response.statusCode < 300 && _.isJSON($_.headers)) {
           $_.json = JSON.parse(body);
         }
-        
+
         if ($_.printResponse) {
           bufferOk = WebShell.Util.responsePrinter($_, response);
         }
@@ -349,7 +349,7 @@ WebShell.Shell = function(stream) {
     });
     return result;
   };
-  
+
   _.each(verbs, function (v) {
     $_[v.toLowerCase()] = function(url, cb) {
       return doHttpReq(v, url, cb);
@@ -383,6 +383,17 @@ WebShell.Shell.prototype = {
   }
 };
 
+function checkVersion() {
+  var matchInfo = process.version.match(/(\d*)\.(\d*)\.(\d*)/);
+  var major = parseInt(matchInfo[1], 10);
+  var minor = parseInt(matchInfo[2], 10);
+  var rev = parseInt(matchInfo[3], 10);
+  if (major === 0 && (minor < 3 || (minor === 3 && rev < 2))) {
+    console.log(stylize("Webshell may not work with this version of node, consider upgrading\n", 'yellow'));
+  }
+}
+
+checkVersion();
 var shell = new WebShell.Shell;
 
 process.on('uncaughtException', function (err) {

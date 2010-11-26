@@ -36,6 +36,7 @@ _.mixin({
   }
 });
 
+
 var $_ = {
   printHeaders: false,
   raw: null,
@@ -92,8 +93,6 @@ WebShell.Shell = function(stream) {
     return bufferOk;
   }
   
-  oldParseREPLKeyword = repl.REPLServer.prototype.parseREPLKeyword;
-
   wsrc.loadContext('_previous', $_, true);
 
   var getContextsCompletion = function (cmd) {
@@ -110,6 +109,9 @@ WebShell.Shell = function(stream) {
   } else {
     web_repl = new repl.REPLServer("webshell> ", stream);
   }
+  
+  this.injectLineListener(web_repl);
+
   process.on('exit', function () {
     if (web_repl.rli._hardClosed) {
       var rc = wsrc.get();
@@ -369,24 +371,25 @@ WebShell.Shell = function(stream) {
 };
 
 WebShell.Shell.prototype = {
-  parseREPLKeyword: function(cmd) {
-    if (oldParseREPLKeyword.call(this, cmd)) {
-      return true;
-    }
-    try {
-      if (cmd) {
-        var split = cmd.split(' ');
-        if (split.length === 2 && _.include(verbs, split[0])) {
-          doHttpReq(split[0], split[1]);
-          return true;
+  injectLineListener: function(web_repl) {
+    var oldOnLineListener = web_repl.rli.listeners('line')[0];
+    web_repl.rli.removeAllListeners('line');
+    web_repl.rli.addListener('line', function(cmd) {
+      try {
+        if (cmd) {
+          var split = cmd.split(' ');
+          if (split.length === 2 && _.include(verbs, split[0])) {
+            doHttpReq(split[0], split[1]);
+            web_repl.displayPrompt(true);
+          } else {
+            oldOnLineListener.call(null, cmd);
+          }
         }
+      } catch (e) {
+        console.log(e.stack);
+        web_repl.displayPrompt(true);
       }
-    } catch(e) {
-      console.log(e.stack);
-      web_repl.displayPrompt(true);
-      return true;
-    }
-    return false;
+    });
   },
   rescue: function() {
     web_repl.displayPrompt(true);
@@ -399,4 +402,3 @@ process.on('uncaughtException', function (err) {
   console.log(stylize('Caught exception: ' + err, 'red'));
   shell.rescue();
 });
-

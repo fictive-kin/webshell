@@ -113,7 +113,7 @@ repl.REPLServer.prototype.complete = function (line) {
     // Intentionally excluding moved modules: posix, utils.
     var builtinLibs = ['assert', 'buffer', 'child_process', 'crypto', 'dgram',
         'dns', 'events', 'file', 'freelist', 'fs', 'http', 'net', 'path',
-        'querystring', 'readline', 'repl', 'string_decoder', 'sys', 'tcp', 'url'];
+        'querystring', 'readline', 'repl', 'string_decoder', 'util', 'tcp', 'url'];
     completionGroups.push(builtinLibs);
   }
 }

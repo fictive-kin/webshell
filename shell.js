@@ -15,7 +15,7 @@ var WebShell = {
   Util: {}
 };
 
-var sys = require('sys'),
+var util = require('util'),
     repl = require('repl'),
     wsrepl = require('wsrepl'),
     http = require('http'),
@@ -85,7 +85,7 @@ WebShell.Shell = function(stream) {
       bufferOk = $_.toolbox.responsePrinter($_, response);
     } else {
       if ($_.json) {
-        web_repl.rli.outputWrite(sys.inspect($_.json, false, undefined, true));
+        web_repl.rli.outputWrite(util.inspect($_.json, false, undefined, true));
         bufferOk = web_repl.rli.outputWrite("\n");
       }
     }
@@ -167,7 +167,7 @@ WebShell.Shell = function(stream) {
       }
       doHttpReq($_.previousVerb, location);
     } else {
-      sys.puts(stylize("No previous request!", 'red'));
+      util.puts(stylize("No previous request!", 'red'));
     }
   };
   ctx.$_.follow = doRedirect;

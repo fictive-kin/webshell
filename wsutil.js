@@ -1,5 +1,5 @@
 var url = require('url'),
-    sys = require('sys'),
+    util = require('util'),
     stylize = require('colors').stylize,
     _ = require('underscore')._;
 
@@ -51,7 +51,7 @@ exports.responsePrinter = function($_, response) {
     bufferOk = $_.toolbox.responsePrinter($_, response);
   } else {
     if ($_.json) {
-      bufferOk = web_repl.rli.outputWrite(sys.inspect($_.json, false, undefined, true));
+      bufferOk = web_repl.rli.outputWrite(util.inspect($_.json, false, undefined, true));
       web_repl.rli.outputWrite("\n");
     }
   }
@@ -97,6 +97,6 @@ exports.printHeader = function(value, name) {
     return _.map(name.split('-'), function(s) { return s[0].toUpperCase() + s.slice(1, s.length); }).join('-');
   };
 
-  sys.puts(normalizeName(name) + ": " + value);
+  util.puts(normalizeName(name) + ": " + value);
 };
 

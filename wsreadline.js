@@ -1,5 +1,5 @@
 var readline = require('readline');
-var sys = require('sys');
+var util = require('util');
 var exec = require('child_process').exec;
 var fs = require('fs');
 
@@ -36,9 +36,9 @@ readline.Interface.prototype.complete = function(input) {
 
   if (matches.length > 1) {
     // more than one match, print matching lines
-    sys.puts("\r");
+    util.puts("\r");
     matches.map(function (val) {
-      sys.puts(val + "\r");
+      util.puts(val + "\r");
     });
     // populate the line with as much of the matches as we can
     // (the common part)

@@ -45,11 +45,11 @@ exports.responsePrinter = function($_, response) {
 exports.formatStatus = function(status, url) {
   var url = formatUrl(url, true);
   var msg = "HTTP " + status + " " + stylize(url, 'white');
-  if (httpSuccess(status)) {
+  if (exports.httpSuccess(status)) {
     console.log(stylize(msg, 'green'));
-  } else if (httpRedirection(status)) {
+  } else if (exports.httpRedirection(status)) {
     console.log(stylize(msg, 'yellow'));
-  } else if (httpClientError(status) || httpServerError(status)) {
+  } else if (exports.httpClientError(status) || exports.httpServerError(status)) {
     console.log(stylize(msg, 'red'));
   } else {
     console.log(stylize(msg, 'white'));

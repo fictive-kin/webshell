@@ -27,7 +27,7 @@ var sys = require('sys'),
     wsreadline = require('wsreadline'),
     _ = require('underscore')._;
     
-_.extend(WebShell.Util, require('util'));
+_.extend(WebShell.Util, require('wsutil'));
 
 _.mixin({
   isJSON: function(headers) {
@@ -125,7 +125,7 @@ WebShell.Shell = function(stream) {
   };
 
   if ($_.previousUrl) {
-    var prevU = parseURL($_.previousUrl);
+    var prevU = WebShell.Util.parseURL($_.previousUrl);
     web_repl = new repl.REPLServer(formatUrl(prevU, false) + ' > ', stream);
   } else {
     web_repl = new repl.REPLServer("webshell> ", stream);

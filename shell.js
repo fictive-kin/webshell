@@ -80,19 +80,6 @@ var $_ = {
 var verbs = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD', 'TRACE', 'CONNECT'];
 
 WebShell.Shell = function(stream) {
-  function responsePrinter($_, response) {
-    var bufferOk = true;
-    if (_.isFunction($_.toolbox.responsePrinter)) {
-      bufferOk = $_.toolbox.responsePrinter($_, response);
-    } else {
-      if ($_.json) {
-        web_repl.rli.outputWrite(util.inspect($_.json, false, undefined, true));
-        bufferOk = web_repl.rli.outputWrite("\n");
-      }
-    }
-    return bufferOk;
-  }
-  
   wsrc.loadContext('_previous', $_, true);
 
   var getContextsCompletion = function (cmd) {
@@ -318,7 +305,7 @@ WebShell.Shell = function(stream) {
     request.end();
     request.on('response', function (response) {
       if ($_.printStatus) {
-        WebShell.Util.formatStatus(response.statusCode, u.href);
+        WebShell.Util.formatStatus(response.statusCode, u);
       }
       ctx.$_.status = response.statusCode;
 

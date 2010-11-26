@@ -36,26 +36,6 @@ _.mixin({
   }
 });
 
-var formatUrl = function (u, includePath, showPassword) {
-  var auth = '';
-  var port = '';
-  if (('http:' == u.protocol && 80 != u.port) || ('https:' == u.protocol && 443 != u.port)) {
-    port = ':' + u.port;
-  }
-  if (u.auth) {
-    if (showPassword) {
-      auth = u.auth + '@';
-    } else {
-      auth = u.auth.split(':')[0] + ':***@';
-    }
-  }
-  var url = u.protocol + (u.slashes ? '//' : '') + auth + u.hostname + port;
-  if (includePath) {
-    url += u.pathname;
-  }
-  return url;
-}
-
 var $_ = {
   printHeaders: false,
   raw: null,
@@ -126,7 +106,7 @@ WebShell.Shell = function(stream) {
 
   if ($_.previousUrl) {
     var prevU = WebShell.Util.parseURL($_.previousUrl);
-    web_repl = new repl.REPLServer(formatUrl(prevU, false) + ' > ', stream);
+    web_repl = new repl.REPLServer(WebShell.Util.formatUrl(prevU, false) + ' > ', stream);
   } else {
     web_repl = new repl.REPLServer("webshell> ", stream);
   }
@@ -196,8 +176,8 @@ WebShell.Shell = function(stream) {
   ctx.$_.loadContext = function (name) {
     wsrc.loadContext(name, $_);
     if ($_.previousUrl) {
-      u = parseURL($_.previousUrl);
-      web_repl.prompt = formatUrl(u, false) + ' > ';
+      u = WebShell.Util.parseURL($_.previousUrl);
+      web_repl.prompt = WebShell.Util.formatUrl(u, false) + ' > ';
     }
   };
   ctx.$_.delContext = function (name) { wsrc.delContext(name, $_); };
@@ -271,7 +251,7 @@ WebShell.Shell = function(stream) {
     }
 
     $_.previousVerb = verb;
-    $_.previousUrl = formatUrl(u, true, true);
+    $_.previousUrl = WebShell.Util.formatUrl(u, true, true);
 
     var content = null;
     var headers = makeHeaders(u);
@@ -325,7 +305,7 @@ WebShell.Shell = function(stream) {
     }
 
     // set prompt
-    web_repl.prompt = formatUrl(u, false) + ' > ';
+    web_repl.prompt = WebShell.Util.formatUrl(u, false) + ' > ';
 
     var request = client.request(verb, path, headers);
     if (content) {

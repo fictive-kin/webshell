@@ -3,9 +3,9 @@ var url = require('url'),
     stylize = require('colors').stylize,
     _ = require('underscore')._;
 
-exports.parseURL = function(urlStr, protocolHelp) {
+exports.parseURL = function(urlStr, protocolHelp, previousUrl) {
   var u = url.parse(urlStr);
-  var prevU = parseURL($_.previousUrl || 'http://example.com');
+  var prevU = previousUrl ? arguments.callee(previousUrl) : url.parse('http://example.com:80/');
   
   if (!u.protocol && !u.hostname) {
     u.protocol = prevU.protocol;
@@ -25,8 +25,24 @@ exports.parseURL = function(urlStr, protocolHelp) {
   return u;
 };
 
-exports.formatUrl = function(u) {
-  return url.format(u);
+exports.formatUrl = function (u, includePath, showPassword) {
+  var auth = '';
+  var port = '';
+  if (('http:' === u.protocol && 80 !== u.port) || ('https:' === u.protocol && 443 !== u.port)) {
+    port = ':' + u.port;
+  }
+  if (u.auth) {
+    if (showPassword) {
+      auth = u.auth + '@';
+    } else {
+      auth = u.auth.split(':')[0] + ':***@';
+    }
+  }
+  var url = u.protocol + (u.slashes ? '//' : '') + auth + u.hostname + port;
+  if (includePath) {
+    url += u.pathname;
+  }
+  return url;
 };
 
 exports.responsePrinter = function($_, response) {
@@ -43,7 +59,7 @@ exports.responsePrinter = function($_, response) {
 };
 
 exports.formatStatus = function(status, url) {
-  var url = formatUrl(url, true);
+  var url = exports.formatUrl(url, true);
   var msg = "HTTP " + status + " " + stylize(url, 'white');
   if (exports.httpSuccess(status)) {
     console.log(stylize(msg, 'green'));

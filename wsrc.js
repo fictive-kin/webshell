@@ -1,5 +1,5 @@
 var fs = require('fs'),
-    sys = require('sys'),
+    util = require('util'),
     stylize = require('colors').stylize,
     _ = require('underscore')._;
 
@@ -47,7 +47,7 @@ function saveContext(name, $_) {
   }
   rc.contexts[name] = obj;
   writeRC(rc, $_.cookies);
-  sys.puts("Saved context: " + name);
+  util.puts("Saved context: " + name);
   return getRC();
 }
 
@@ -74,9 +74,9 @@ function loadContext(name, $_, ignoreError) {
     }
     $_.cookies.__set_raw__($_.__cookieJar);
     delete $_['__cookieJar'];
-    sys.puts("Loaded context: " + name);
+    util.puts("Loaded context: " + name);
   } else if (!ignoreError) {
-    sys.puts(stylize("Could not load context: " + name, 'red'));
+    util.puts(stylize("Could not load context: " + name, 'red'));
   }
 }
 
@@ -85,9 +85,9 @@ function delContext(name, $_) {
   if (rc.contexts[name]) {
     delete rc.contexts[name];
     writeRC(rc, $_.cookies);
-    sys.puts("Deleted context: " + name);
+    util.puts("Deleted context: " + name);
   } else {
-    sys.puts(stylize("Context " + name + " does not exist.", 'red'));
+    util.puts(stylize("Context " + name + " does not exist.", 'red'));
   }
 }
 

@@ -140,20 +140,8 @@ WebShell.Shell = function(stream) {
   doRedirect = function() {
     var location = $_.headers.location;
     if (location) {
-      var locationUrl = WebShell.Util.parseURL(location, false);
-      if (!locationUrl.protocol) {
-        var prevUrl = WebShell.Util.parseURL($_.previousUrl);
-        // a relative URL, auto-populate with previous URL's info
-        locationUrl.protocol = prevUrl.protocol;
-        locationUrl.hostname = prevUrl.hostname;
-        if (prevUrl.auth) {
-          locationUrl.auth = prevUrl.auth;
-        }
-        if (prevUrl.port) {
-          locationUrl.port = prevUrl.port;
-        }
-        location = WebShell.Util.formtUrl(locationUrl);
-      }
+      var locationUrl = WebShell.Util.parseURL(location, false, $_.previousUrl);
+      location = WebShell.Util.formatUrl(locationUrl);
       doHttpReq($_.previousVerb, location);
     } else {
       util.puts(stylize("No previous request!", 'red'));
@@ -218,7 +206,7 @@ WebShell.Shell = function(stream) {
     web_repl.suppressPrompt++;
     result = new ResultHolder(verb, urlStr);
 
-    var u = WebShell.Util.parseURL(urlStr);
+    var u = WebShell.Util.parseURL(urlStr, true, $_.previousUrl);
 
     var client = http.createClient(u.port, u.hostname, u.protocol === 'https:');
     var baseHeaders = _.clone($_.requestHeaders);

@@ -25,7 +25,9 @@ var util = require('util'),
     cookies = require('cookies'),
     wsrc = require('wsrc'),
     wsreadline = require('wsreadline'),
-    _ = require('underscore')._;
+    _ = require('underscore')._,
+    env = require('env'),
+    jquery = require('jquery');
 
 _.extend(WebShell.Util, require('wsutil'));
 

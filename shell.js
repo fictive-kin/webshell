@@ -80,6 +80,7 @@ var $_ = {
 var verbs = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD', 'TRACE', 'CONNECT'];
 
 WebShell.Shell = function(stream) {
+  var prevU;
   wsrc.loadContext('_previous', $_, true);
 
   var getContextsCompletion = function (cmd) {
@@ -91,7 +92,7 @@ WebShell.Shell = function(stream) {
   };
 
   if ($_.previousUrl) {
-    var prevU = WebShell.Util.parseURL($_.previousUrl);
+    prevU = WebShell.Util.parseURL($_.previousUrl);
     web_repl = new repl.REPLServer(WebShell.Util.formatUrl(prevU, false) + ' > ', stream);
   } else {
     web_repl = new repl.REPLServer("webshell> ", stream);
@@ -207,7 +208,7 @@ WebShell.Shell = function(stream) {
     result = new ResultHolder(verb, urlStr);
 
     var u = WebShell.Util.parseURL(urlStr, true, $_.previousUrl);
-
+    var prevU = $_.previousUrl ? WebShell.Util.parseURL($_.previousUrl, true) : undefined;
     var client = http.createClient(u.port, u.hostname, u.protocol === 'https:');
     var baseHeaders = _.clone($_.requestHeaders);
     var lowerHeaders = {};
@@ -219,7 +220,7 @@ WebShell.Shell = function(stream) {
     delete baseHeaders.cookie; // provided by makeHeaders()
 
     // check for prev auth
-    if (!u.auth && prevU.auth) {
+    if (!u.auth && prevU && prevU.auth) {
       if ((prevU.hostname == u.hostname)) {
         u.auth = prevU.auth; // re-use previous auth
       } else {

@@ -136,8 +136,6 @@ WebShell.Shell = function(stream) {
 
   var ctx = web_repl.context;
 
-  repl.REPLServer.prototype.parseREPLKeyword = this.parseREPLKeyword;
-
   ctx.$_ = $_;
 
   doRedirect = function() {

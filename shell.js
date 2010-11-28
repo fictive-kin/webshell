@@ -40,6 +40,7 @@ _.mixin({
 
 
 var $_ = {
+  useJquery: true,
   printHeaders: false,
   raw: null,
   response: null,
@@ -79,6 +80,7 @@ var $_ = {
   }
 };
 
+var window = env.window;
 var verbs = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD', 'TRACE', 'CONNECT'];
 
 WebShell.Shell = function(stream) {
@@ -210,6 +212,7 @@ WebShell.Shell = function(stream) {
     var u = WebShell.Util.parseURL(urlStr, true, $_.previousUrl);
     var prevU = $_.previousUrl ? WebShell.Util.parseURL($_.previousUrl, true) : undefined;
     var client = http.createClient(u.port, u.hostname, u.protocol === 'https:');
+    var xmlHeaders = ['text/html', 'text/xml', 'application/xml', 'application/rss+xml', 'application/rdf+xml', 'application/atom+xml'];
     var baseHeaders = _.clone($_.requestHeaders);
     var lowerHeaders = {};
     _.map(baseHeaders, function (v, k) {
@@ -323,6 +326,20 @@ WebShell.Shell = function(stream) {
           bufferOk = WebShell.Util.responsePrinter($_, response);
         }
 
+        if ($_.useJquery && _.include(xmlHeaders, $_.headers['content-type'].split('; ')[0])) {
+          $_.document = new env.DOMDocument(body);
+          window.document = $_.document;
+
+          ctx.$ = function(selector, context) {
+            var doSetup = !!env.window.document;
+            env.window.document = $_.document;
+            if (doSetup) {
+              jquery.setup(env.window);
+            }
+            return env.window.jQuery(selector, context);
+          }
+        }
+
         _.extend(result, {raw: $_.raw, headers: $_.headers, statusCode: $_.status, json: $_.json});
         result.finalize();
         if (cb) {
@@ -387,5 +404,6 @@ var shell = new WebShell.Shell;
 
 process.on('uncaughtException', function (err) {
   console.log(stylize('Caught exception: ' + err, 'red'));
+  console.log(err.stack);
   shell.rescue();
 });

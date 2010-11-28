@@ -9,9 +9,12 @@ var http = require('http'),
     _ = require('underscore')._;
 var libxml;
 try {
-  libxml = require('libxmljs/libxmljs');
+  libxml = require('./lib/libxmljs/libxmljs');
 } catch (e) {
+  var stylize = require('colors').stylize;
+  console.log(stylize("Unable to load libxmljs.  jQuery won't work!\n", 'yellow'));
   exports.DOMDocument = function(x) { };
+  exports.window = {};
   return;
 }
 

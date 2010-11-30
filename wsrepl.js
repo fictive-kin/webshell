@@ -39,10 +39,10 @@ repl.REPLServer.prototype.complete = function (line) {
   var completions,
       completionGroups = [],  // list of completion lists, one for each inheritance "level"
       completeOn,
-      match, filter, i, j, group, c;
+      match = null,
+      filter, i, j, group, c;
 
   // REPL commands (e.g. ".break").
-  var match = null;
   match = line.match(/^\s*(\.\w*)$/);
   if (match) {
     completionGroups.push(['.break', '.clear', '.exit', '.help']);
@@ -61,7 +61,7 @@ repl.REPLServer.prototype.complete = function (line) {
 
   completeOn = match[1];
   var subdir = match[2] || "";
-  var filter = match[1];
+  filter = match[1];
   var dir, files, f, name, base, ext, abs, subfiles, s;
   group = [];
   for (i = 0; i < require.paths.length; i++) {
@@ -217,7 +217,7 @@ if (completionGroups.length && filter) {
   var newCompletionGroups = [];
   for (i = 0; i < completionGroups.length; i++) {
     group = completionGroups[i].filter(function(elem) {
-      return elem.indexOf(filter) == 0;
+      return elem.indexOf(filter) === 0;
     });
     if (group.length) {
       newCompletionGroups.push(group);

@@ -62,13 +62,13 @@ exports.formatStatus = function(status, url) {
   var url = exports.formatUrl(url, true);
   var msg = "HTTP " + status + " " + stylize(url, 'white');
   if (exports.httpSuccess(status)) {
-    console.log(stylize(msg, 'green'));
+    return stylize(msg, 'green');
   } else if (exports.httpRedirection(status)) {
-    console.log(stylize(msg, 'yellow'));
+    return stylize(msg, 'yellow');
   } else if (exports.httpClientError(status) || exports.httpServerError(status)) {
-    console.log(stylize(msg, 'red'));
+    return stylize(msg, 'red');
   } else {
-    console.log(stylize(msg, 'white'));
+    return stylize(msg, 'white');
   }
 };
 

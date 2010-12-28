@@ -5,7 +5,7 @@
 /* response data will be put into the global variable $_ */
 /* raw response data: $_.raw */
 /* headers: $_.headers */
-/* vim: sw=2 ts=2 et */
+// vim: sw=2 ts=2 et
 
 require.paths.unshift(__dirname + '/deps');
 var webshellVersion = '0.2-dev';
@@ -297,7 +297,16 @@ WebShell.Shell = function(stream) {
     request.end();
     request.on('response', function (response) {
       if ($_.printStatus) {
-        WebShell.Util.formatStatus(response.statusCode, u);
+        var bufferOk = web_repl.rli.outputWrite(
+          '\x1b[1K'
+          + '\x1b[' + (web_repl.rli._promptLength + web_repl.rli.line.length) + 'D'
+          + WebShell.Util.formatStatus(response.statusCode, u)
+          + "\n");
+        if (bufferOk) {
+          web_repl.displayPrompt(true);
+        } else {
+          web_repl.displayPromptOnDrain = true;
+        }
       }
       ctx.$_.status = response.statusCode;
 
@@ -407,3 +416,4 @@ process.on('uncaughtException', function (err) {
   console.log(err.stack);
   shell.rescue();
 });
+

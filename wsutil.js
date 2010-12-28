@@ -9,9 +9,9 @@ var url = require('url'),
 
 exports.parseURL = function(urlStr, protocolHelp, previousUrl) {
   var u = url.parse(urlStr);
-  var prevU = previousUrl ? arguments.callee(previousUrl) : url.parse('http://example.com:80/');
   
   if (!u.protocol && !u.hostname) {
+    var prevU = previousUrl ? exports.parseURL(previousUrl) : url.parse('http://example.com:80/');
     u.protocol = prevU.protocol;
     u.hostname = prevU.hostname;
     u.slashes = prevU.slashes;

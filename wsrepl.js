@@ -13,11 +13,11 @@ repl.REPLServer.prototype.displayPrompt = function (reset) {
   }
 };
 
-var Script = process.binding('evals').Script;
-var evalcx = Script.runInContext;
-
 // NOTE: .complete can be dumped if/when this is pulled to ryah/node:
 // http://github.com/scoates/node/commit/44e8ebeee95600d571e3d316db8df1147c4da828
+
+var Script = process.binding('evals').Script;
+var evalcx = Script.runInContext;
 
 /**
  * Provide a list of completions for the given leading text. This is

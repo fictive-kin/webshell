@@ -1,12 +1,3 @@
-/* Usage: node shell.js */
-/* functions as a regular node shell */
-/* issue HTTP commands with: `<VERB> <URL>' */
-/* e.g. GET http://www.google.com/ */
-/* response data will be put into the global variable $_ */
-/* raw response data: $_.raw */
-/* headers: $_.headers */
-// vim: sw=2 ts=2 et
-
 require.paths.unshift(__dirname + '/deps');
 var webshellVersion = '0.3-dev';
 
@@ -169,3 +160,4 @@ process.on('uncaughtException', function (err) {
   shell.rescue();
 });
 
+// vim: sw=2 ts=2 et

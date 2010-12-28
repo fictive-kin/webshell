@@ -72,6 +72,6 @@ function stylize(str, style) {
   };
   return '\033[' + styles[style][0] + 'm' + str +
          '\033[' + styles[style][1] + 'm';
-};
+}
 
 exports.stylize = stylize;

@@ -8,11 +8,11 @@ var cookieJar = rc.cookies || {};
 
 function endsWith(needle, hayStack) {
   return hayStack.match(needle + "$") == needle;
-};
+}
 
 function startsWith(needle, hayStack) {
   return hayStack.match("^" + needle) == needle;
-};
+}
 
 
 function clear() {
@@ -47,14 +47,16 @@ function get(domain, key) {
       }
     }
   }
+  return null;
 }
 
 function parseCookie(string) {
   var first = true;
   var cookie = {http_only: false};
+  var parts;
   string.trim().split(";").forEach(function(component) {
     if (first) {
-      var parts = component.trim().split('=');
+      parts = component.trim().split('=');
       cookie.key = parts[0];
       cookie.value = parts.slice(1).join('=');
       first = false;
@@ -62,7 +64,7 @@ function parseCookie(string) {
       if (component.trim().toLowerCase() === 'httponly') {
         cookie.http_only = true;
       } else {
-        var parts = component.trim().split('=');
+        parts = component.trim().split('=');
         cookie[parts[0]] = parts[1];
       }
     }

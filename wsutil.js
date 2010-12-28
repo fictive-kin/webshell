@@ -90,12 +90,12 @@ exports.httpServerError = function(status) {
 
 exports.base64Encode = function(str) {
   return (new Buffer(str, 'ascii')).toString('base64');
-}
+};
 
 exports.printHeader = function(value, name) {
   function normalizeName(name) {
     return _.map(name.split('-'), function(s) { return s[0].toUpperCase() + s.slice(1, s.length); }).join('-');
-  };
+  }
 
   util.puts(normalizeName(name) + ": " + value);
 };

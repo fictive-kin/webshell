@@ -34,7 +34,7 @@ _.extend(WebShell.Util, require('wsutil'));
 _.mixin({
   isJSON: function(headers) {
     var jsonHeaders = ['application/json', 'text/x-json'];
-    return headers['content-type'] && _.include(jsonHeaders, headers['content-type'].split('; ')[0])
+    return headers['content-type'] && _.include(jsonHeaders, headers['content-type'].split('; ')[0]);
   }
 });
 
@@ -105,10 +105,11 @@ WebShell.Shell = function(stream) {
   this.injectLineListener(web_repl);
 
   process.on('exit', function () {
+    var rc;
     if (web_repl.rli._hardClosed) {
-      var rc = wsrc.get();
+      rc = wsrc.get();
     } else {
-      var rc = wsrc.saveContext('_previous', $_);
+      rc = wsrc.saveContext('_previous', $_);
     }
     rc.history = web_repl.rli.history;
     wsrc.write(rc, cookies);
@@ -346,7 +347,7 @@ WebShell.Shell = function(stream) {
               jquery.setup(env.window);
             }
             return env.window.jQuery(selector, context);
-          }
+          };
         }
 
         _.extend(result, {raw: $_.raw, headers: $_.headers, statusCode: $_.status, json: $_.json});

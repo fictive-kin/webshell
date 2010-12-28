@@ -386,6 +386,8 @@ WebShell.Shell.prototype = {
           } else {
             oldOnLineListener.call(null, cmd);
           }
+        } else {
+          web_repl.displayPrompt(true);
         }
       } catch (e) {
         console.log(e.stack);

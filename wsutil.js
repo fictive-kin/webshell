@@ -4,6 +4,7 @@ var url = require('url'),
     stylize = require('colors').stylize,
     querystring = require('querystring'),
     fs = require('fs'),
+    wsrc = require('wsrc'),
     _ = require('underscore')._;
 
 exports.parseURL = function(urlStr, protocolHelp, previousUrl) {
@@ -124,8 +125,18 @@ exports.fileToRequestData =  function ($_, filename, encoding) {
   }
 };
 
-exports.evalFile =  function (filename) {
+exports.evalFile = function (filename) {
   eval("var s = " + fs.readFileSync(filename));
   return s;
 };
 
+exports.onExit = function (web_repl, $_) {
+  var rc;
+  if (web_repl.rli._hardClosed) {
+    rc = wsrc.get();
+  } else {
+    rc = wsrc.saveContext('_previous', $_);
+  }
+  rc.history = web_repl.rli.history;
+  wsrc.write(rc, $_.cookies);
+};

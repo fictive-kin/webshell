@@ -65,7 +65,7 @@ var verbs = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD', 'TRACE', 'CONNEC
 
 WebShell.Shell = function(stream) {
   var prevU;
-  wsrc.loadContext('_previous', $_, true);
+  wsrc.loadContext('_previous', $_, false, true);
 
   var getContextsCompletion = function (cmd) {
     var completion = [];
@@ -84,16 +84,7 @@ WebShell.Shell = function(stream) {
 
   this.injectLineListener(web_repl);
 
-  process.on('exit', function () {
-    var rc;
-    if (web_repl.rli._hardClosed) {
-      rc = wsrc.get();
-    } else {
-      rc = wsrc.saveContext('_previous', $_);
-    }
-    rc.history = web_repl.rli.history;
-    wsrc.write(rc, cookies);
-  });
+  process.on('exit', function () { WebShell.Util.onExit(web_repl, $_); });
   web_repl.rli.history = wsrc.get().history;
 
   // trap tab key:
@@ -134,13 +125,7 @@ WebShell.Shell = function(stream) {
   ctx.$_.follow = doRedirect;
 
   ctx.$_.saveContext = function (name) { wsrc.saveContext(name, $_); };
-  ctx.$_.loadContext = function (name) {
-    wsrc.loadContext(name, $_);
-    if ($_.previousUrl) {
-      u = WebShell.Util.parseURL($_.previousUrl);
-      web_repl.prompt = WebShell.Util.formatUrl(u, false) + ' > ';
-    }
-  };
+  ctx.$_.loadContext = function (name) { wsrc.loadContext(name, $_, web_repl); };
   ctx.$_.delContext = function (name) { wsrc.delContext(name, $_); };
 
   function makeHeaders(url) {

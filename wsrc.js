@@ -1,6 +1,7 @@
 var fs = require('fs'),
     util = require('util'),
     stylize = require('colors').stylize,
+    wsutil = require('wsutil'),
     _ = require('underscore')._;
 
 var functionPrefix = '___WSFUNC___';
@@ -52,7 +53,7 @@ function saveContext(name, $_) {
 }
 
 
-function loadContext(name, $_, ignoreError) {
+function loadContext(name, $_, web_repl, ignoreError) {
   var rc = getRC();
   if (rc.contexts[name]) {
     _.each(rc.contexts[name], function (v, k) {
@@ -77,6 +78,10 @@ function loadContext(name, $_, ignoreError) {
     util.puts("Loaded context: " + name);
   } else if (!ignoreError) {
     util.puts(stylize("Could not load context: " + name, 'red'));
+  }
+  if (web_repl && $_.previousUrl) {
+    u = wsutil.parseURL($_.previousUrl);
+    web_repl.prompt = wsutil.formatUrl(u, false) + ' > ';
   }
 }
 

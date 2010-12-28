@@ -15,8 +15,8 @@ var util = require('util'),
     wsrc = require('wsrc'),
     wsreadline = require('wsreadline'),
     _ = require('underscore')._,
-    wshttp = require('wshttp'),
-    jquery = require('jquery');
+    jquery = require('jquery'),
+    WsHttp = require('wshttp').WsHttp;
 
 _.extend(WebShell.Util, require('wsutil'));
 
@@ -26,7 +26,6 @@ _.mixin({
     return headers['content-type'] && _.include(jsonHeaders, headers['content-type'].split('; ')[0]);
   }
 });
-
 
 var $_ = {
   useJquery: true,
@@ -70,6 +69,8 @@ WebShell.Shell = function(stream) {
     web_repl = new repl.REPLServer("webshell> ", stream);
   }
 
+  this.WsHttp = new WsHttp($_, web_repl, webshellVersion);
+
   this.injectLineListener(web_repl);
 
   process.on('exit', function () { WebShell.Util.onExit(web_repl, $_); });
@@ -97,18 +98,17 @@ WebShell.Shell = function(stream) {
   });
 
   var ctx = web_repl.context;
+  var shell = this;
 
   ctx.$_ = $_;
-
-  ctx.$_.follow = function () { return wshttp.doRedirect($_, web_repl); };
-
+  ctx.$_.follow = function () { return shell.WsHttp.doRedirect(); };
   ctx.$_.saveContext = function (name) { wsrc.saveContext(name, $_); };
   ctx.$_.loadContext = function (name) { wsrc.loadContext(name, $_, web_repl); };
   ctx.$_.delContext = function (name) { wsrc.delContext(name, $_); };
 
   _.each(verbs, function (v) {
     $_[v.toLowerCase()] = function(url, cb) {
-      return wshttp.doReq(v, url, cb, $_, web_repl);
+      return shell.WsHttp.doReq(v, url, cb);
     };
   });
 };
@@ -117,12 +117,13 @@ WebShell.Shell.prototype = {
   injectLineListener: function(web_repl) {
     var oldOnLineListener = web_repl.rli.listeners('line')[0];
     web_repl.rli.removeAllListeners('line');
+    var shell = this;
     web_repl.rli.addListener('line', function(cmd) {
       try {
         if (cmd) {
           var split = cmd.split(' ');
           if (split.length === 2 && _.include(verbs, split[0])) {
-            wshttp.doReq(split[0], split[1], null, $_, web_repl);
+            shell.WsHttp.doReq(split[0], split[1], null);
             web_repl.displayPrompt(true);
           } else {
             oldOnLineListener.call(null, cmd);

@@ -101,7 +101,7 @@ exports.printHeader = function(value, name) {
     return _.map(name.split('-'), function(s) { return s[0].toUpperCase() + s.slice(1, s.length); }).join('-');
   }
 
-  util.puts(normalizeName(name) + ": " + value);
+  console.log(normalizeName(name) + ": " + value);
 };
 
 exports.postToRequestData = function ($_, post) {

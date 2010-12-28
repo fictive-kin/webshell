@@ -1,5 +1,4 @@
-var util = require('util'),
-    _ = require('underscore')._,
+var _ = require('underscore')._,
     http = require('http'),
     cookies = require('cookies'),
     env = require('env'),
@@ -273,7 +272,7 @@ WsHttp.prototype = {
     if (location) {
       this.doReq(this.$_.previousVerb, location, null);
     } else {
-      util.puts(stylize("No previous request!", 'red'));
+      console.log(stylize("No previous request!", 'red'));
     }
   }
 };

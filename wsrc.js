@@ -1,5 +1,4 @@
 var fs = require('fs'),
-    util = require('util'),
     stylize = require('colors').stylize,
     wsutil = require('wsutil'),
     _ = require('underscore')._;
@@ -48,7 +47,7 @@ function saveContext(name, $_) {
   }
   rc.contexts[name] = obj;
   writeRC(rc, $_.cookies);
-  util.puts("Saved context: " + name);
+  console.log("Saved context: " + name);
   return getRC();
 }
 
@@ -75,9 +74,9 @@ function loadContext(name, $_, web_repl, ignoreError) {
     }
     $_.cookies.__set_raw__($_.__cookieJar);
     delete $_['__cookieJar'];
-    util.puts("Loaded context: " + name);
+    console.log("Loaded context: " + name);
   } else if (!ignoreError) {
-    util.puts(stylize("Could not load context: " + name, 'red'));
+    console.log(stylize("Could not load context: " + name, 'red'));
   }
   if (web_repl && $_.previousUrl) {
     u = wsutil.parseURL($_.previousUrl);
@@ -90,9 +89,9 @@ function delContext(name, $_) {
   if (rc.contexts[name]) {
     delete rc.contexts[name];
     writeRC(rc, $_.cookies);
-    util.puts("Deleted context: " + name);
+    console.log("Deleted context: " + name);
   } else {
-    util.puts(stylize("Context " + name + " does not exist.", 'red'));
+    console.log(stylize("Context " + name + " does not exist.", 'red'));
   }
 }
 

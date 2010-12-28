@@ -64,7 +64,6 @@ WsHttp.prototype = {
   },
 
   doReq: function (verb, urlStr, cb) {
-    this.web_repl.suppressPrompt++;
     result = new ResultHolder(verb, urlStr);
 
     var u = wsutil.parseURL(urlStr, true, this.$_.previousUrl);
@@ -123,7 +122,7 @@ WsHttp.prototype = {
       case 'PUT':
         if (typeof this.$_.requestData !== 'string') {
           console.log(stylize("$_.requestData must be a string", "red"));
-          this.web_repl.displayPrompt(true);
+          this.web_repl.displayPrompt();
           return false;
         }
         content = this.$_.requestData;
@@ -155,16 +154,9 @@ WsHttp.prototype = {
     var self = this;
     request.on('response', function (response) {
       if (self.$_.printStatus) {
-        var bufferOk = self.web_repl.rli.outputWrite(
-          '\x1b[1K'
-          + '\x1b[' + (self.web_repl.rli._promptLength + self.web_repl.rli.line.length) + 'D'
-          + wsutil.formatStatus(response.statusCode, u, response.client.seq)
-          + "\n");
-        if (bufferOk) {
-          self.web_repl.displayPrompt(true);
-        } else {
-          self.web_repl.displayPromptOnDrain = true;
-        }
+        self.web_repl.outputAndPrompt(
+          wsutil.formatStatus(response.statusCode, u, response.client.seq)
+        );
       }
       self.$_.status = response.statusCode;
 
@@ -213,10 +205,9 @@ WsHttp.prototype = {
           cb(self.$_); // TODO
         }
         if (bufferOk) {
-          self.web_repl.displayPrompt(true);
+          self.web_repl.displayPrompt();
         } else {
           self.web_repl.displayPromptOnDrain = true;
-          self.web_repl.suppressPrompt--;
         }
         // remove this client from pending requests
         self.$_.pendingRequests = _.without(self.$_.pendingRequests, response.client.seq);
@@ -224,17 +215,10 @@ WsHttp.prototype = {
         // check to see if there are enqueued requests
         if (self.$_.enqueuedRequests.length > 0) {
           var request = self.$_.enqueuedRequests.shift();
-
-          var bufferOk = self.web_repl.rli.outputWrite(
-            '\x1b[1K'
-            + '\x1b[' + (self.web_repl.rli._promptLength + self.web_repl.rli.line.length) + 'D'
-            + "Dequeuing request: enqueued seq #" + request.seq + "\n"
+          self.web_repl.outputAndPrompt(
+            stylize(request.result.verb, 'blue') + ' ' + request.result.url
+            + stylize(' #' + request.seq + ' (dequeued)', 'grey')
           );
-          if (bufferOk) {
-            self.web_repl.displayPrompt(true);
-          } else {
-            self.web_repl.displayPromptOnDrain = true;
-          }
           self.$_.pendingRequests.push(request.seq);
           request.end();
 
@@ -245,26 +229,20 @@ WsHttp.prototype = {
     // set client to a unique ID so it can be tracked in the response
     client.seq = this.requestSeq++;
     request.seq = client.seq;
+    request.result = result;
     if (this.$_.pendingRequests.length < this.$_.requestConcurrency) {
       this.$_.pendingRequests.push(client.seq);
       request.end();
+      this.web_repl.outputAndPrompt(
+        stylize(result.verb, 'blue') + ' ' + result.url
+      );
     } else {
       this.$_.enqueuedRequests.push(request);
-
-      var bufferOk = this.web_repl.rli.outputWrite(
-        '\x1b[1K'
-        + '\x1b[' + (self.web_repl.rli._promptLength + self.web_repl.rli.line.length) + 'D'
-        + "Already " + this.$_.requestConcurrency
-        + " pending requests: enqueued seq #" + client.seq + "\n"
+      this.web_repl.outputAndPrompt(
+        stylize(result.verb, 'blue') + ' ' + result.url
+        + stylize(' #' + client.seq + ' (enqueued)', 'grey')
       );
-      if (bufferOk) {
-        self.web_repl.displayPrompt(true);
-      } else {
-        self.web_repl.displayPromptOnDrain = true;
-      }
     }
-
-    return result;
   },
 
   doRedirect: function() {

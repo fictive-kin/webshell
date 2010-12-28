@@ -2,16 +2,24 @@ var repl = require('repl');
 
 module.exports = repl;
 
-repl.REPLServer.prototype.suppressPrompt = false;
-repl.REPLServer.prototype.displayPrompt = function (reset) {
-  if (reset) {
-    this.suppressPrompt--;
-  }
-  if (this.suppressPrompt <= 0) {
-    this.rli.setPrompt(this.buffered_cmd.length ? '...   ' : this.prompt);
-    this.rli.prompt();
-  }
+repl.REPLServer.prototype.displayPrompt = function () {
+  this.rli.setPrompt(this.buffered_cmd.length ? '...   ' : this.prompt);
+  this.rli.prompt();
 };
+
+repl.REPLServer.prototype.outputAndPrompt = function (msg) {
+  var bufferOk = this.rli.outputWrite(
+      '\x1b[1K'
+      + '\x1b[' + (this.rli._promptLength + this.rli.line.length) + 'D'
+      + msg
+      + "\n");
+  if (bufferOk) {
+    this.displayPrompt();
+  } else {
+    this.displayPromptOnDrain = true;
+  }
+}
+
 
 // NOTE: .complete can be dumped if/when this is pulled to ryah/node:
 // http://github.com/scoates/node/commit/44e8ebeee95600d571e3d316db8df1147c4da828

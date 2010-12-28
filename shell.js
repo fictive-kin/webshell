@@ -124,21 +124,21 @@ WebShell.Shell.prototype = {
           var split = cmd.split(' ');
           if (split.length === 2 && _.include(verbs, split[0])) {
             shell.WsHttp.doReq(split[0], split[1], null);
-            web_repl.displayPrompt(true);
+            web_repl.displayPrompt();
           } else {
             oldOnLineListener.call(null, cmd);
           }
         } else {
-          web_repl.displayPrompt(true);
+          web_repl.displayPrompt();
         }
       } catch (e) {
         console.log(e.stack);
-        web_repl.displayPrompt(true);
+        web_repl.displayPrompt();
       }
     });
   },
   rescue: function() {
-    web_repl.displayPrompt(true);
+    web_repl.displayPrompt();
   }
 };
 

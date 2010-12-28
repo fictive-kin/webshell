@@ -54,23 +54,10 @@ var $_ = {
   printStatus: true,
   printResponse: true,
   postToRequestData: function (post) { return WebShell.Util.postToRequestData(this, post); },
-  fileToRequestData: function (filename, encoding) {
-    if (undefined == encoding) {
-      encoding = 'utf8';
-    }
-    try {
-      this.requestData = fs.readFileSync(filename, encoding);
-      console.log(stylize("Set requestData to '" + filename + "' (" + this.requestData.length + " bytes, " + encoding + ")", "yellow"));
-    } catch (e) {
-      console.log(stylize("Could not read " + filename, "red"));
-    }
-  },
+  fileToRequestData: function (filename, encoding) { return WebShell.Util.fileToRequestData(this, filename, encoding); },
   cookies: cookies,
   toolbox: {},
-  evalFile: function (filename) {
-    eval("var s = " + fs.readFileSync(filename));
-    return s;
-  }
+  evalFile: WebShell.Util.evalFile
 };
 
 var window = env.window;

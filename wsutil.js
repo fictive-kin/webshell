@@ -3,6 +3,7 @@ var url = require('url'),
     util = require('util'),
     stylize = require('colors').stylize,
     querystring = require('querystring'),
+    fs = require('fs'),
     _ = require('underscore')._;
 
 exports.parseURL = function(urlStr, protocolHelp, previousUrl) {
@@ -109,5 +110,22 @@ exports.postToRequestData = function ($_, post) {
     return data;
   }
   return false;
-}
+};
+
+exports.fileToRequestData =  function ($_, filename, encoding) {
+  if (undefined == encoding) {
+    encoding = 'utf8';
+  }
+  try {
+    $_.requestData = fs.readFileSync(filename, encoding);
+    console.log(stylize("Set requestData to '" + filename + "' (" + $_.requestData.length + " bytes, " + encoding + ")", "yellow"));
+  } catch (e) {
+    console.log(stylize("Could not read " + filename, "red"));
+  }
+};
+
+exports.evalFile =  function (filename) {
+  eval("var s = " + fs.readFileSync(filename));
+  return s;
+};
 

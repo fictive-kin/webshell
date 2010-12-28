@@ -8,7 +8,7 @@
 // vim: sw=2 ts=2 et
 
 require.paths.unshift(__dirname + '/deps');
-var webshellVersion = '0.2-dev';
+var webshellVersion = '0.3-dev';
 
 require.paths.unshift(__dirname);
 var WebShell = {
@@ -53,14 +53,7 @@ var $_ = {
   useCookies: true,
   printStatus: true,
   printResponse: true,
-  postToRequestData: function (post) {
-    var data = querystring.parse(post);
-    if (data) {
-      this.requestData = data;
-      return data;
-    }
-    return false;
-  },
+  postToRequestData: function (post) { return WebShell.Util.postToRequestData(this, post); },
   fileToRequestData: function (filename, encoding) {
     if (undefined == encoding) {
       encoding = 'utf8';

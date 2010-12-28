@@ -1,6 +1,8 @@
+// vim: sw=2 ts=2 et
 var url = require('url'),
     util = require('util'),
     stylize = require('colors').stylize,
+    querystring = require('querystring'),
     _ = require('underscore')._;
 
 exports.parseURL = function(urlStr, protocolHelp, previousUrl) {
@@ -99,4 +101,13 @@ exports.printHeader = function(value, name) {
 
   util.puts(normalizeName(name) + ": " + value);
 };
+
+exports.postToRequestData = function ($_, post) {
+  var data = querystring.parse(post);
+  if (data) {
+    $_.requestData = data;
+    return data;
+  }
+  return false;
+}
 

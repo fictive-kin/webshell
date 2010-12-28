@@ -28,6 +28,12 @@ var WsHttp = function($_, web_repl, webshellVersion) {
   this.$_ = $_;
   this.web_repl = web_repl;
   this.webshellVersion = webshellVersion;
+  this.$_.pendingRequests = [];
+  this.$_.enqueuedRequests = [];
+  this.requestSeq = 0;
+  if (undefined === this.$_.requestConcurrency) {
+    this.$_.requestConcurrency = 5;
+  }
 };
 
 WsHttp.prototype = {
@@ -147,14 +153,13 @@ WsHttp.prototype = {
     }
 
     this.$_.requestHeaders = headers;
-    request.end();
     var self = this;
     request.on('response', function (response) {
       if (self.$_.printStatus) {
         var bufferOk = self.web_repl.rli.outputWrite(
           '\x1b[1K'
           + '\x1b[' + (self.web_repl.rli._promptLength + self.web_repl.rli.line.length) + 'D'
-          + wsutil.formatStatus(response.statusCode, u)
+          + wsutil.formatStatus(response.statusCode, u, response.client.seq)
           + "\n");
         if (bufferOk) {
           self.web_repl.displayPrompt(true);
@@ -214,8 +219,52 @@ WsHttp.prototype = {
           self.web_repl.displayPromptOnDrain = true;
           self.web_repl.suppressPrompt--;
         }
+        // remove this client from pending requests
+        self.$_.pendingRequests = _.without(self.$_.pendingRequests, response.client.seq);
+
+        // check to see if there are enqueued requests
+        if (self.$_.enqueuedRequests.length > 0) {
+          var request = self.$_.enqueuedRequests.shift();
+
+          var bufferOk = self.web_repl.rli.outputWrite(
+            '\x1b[1K'
+            + '\x1b[' + (self.web_repl.rli._promptLength + self.web_repl.rli.line.length) + 'D'
+            + "Dequeuing request: enqueued seq #" + request.seq + "\n"
+          );
+          if (bufferOk) {
+            self.web_repl.displayPrompt(true);
+          } else {
+            self.web_repl.displayPromptOnDrain = true;
+          }
+          self.$_.pendingRequests.push(request.seq);
+          request.end();
+
+        }
       });
     });
+
+    // set client to a unique ID so it can be tracked in the response
+    client.seq = this.requestSeq++;
+    request.seq = client.seq;
+    if (this.$_.pendingRequests.length < this.$_.requestConcurrency) {
+      this.$_.pendingRequests.push(client.seq);
+      request.end();
+    } else {
+      this.$_.enqueuedRequests.push(request);
+
+      var bufferOk = this.web_repl.rli.outputWrite(
+        '\x1b[1K'
+        + '\x1b[' + (self.web_repl.rli._promptLength + self.web_repl.rli.line.length) + 'D'
+        + "Already " + this.$_.requestConcurrency
+        + " pending requests: enqueued seq #" + client.seq + "\n"
+      );
+      if (bufferOk) {
+        self.web_repl.displayPrompt(true);
+      } else {
+        self.web_repl.displayPromptOnDrain = true;
+      }
+    }
+
     return result;
   },
 

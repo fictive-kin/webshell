@@ -3,6 +3,7 @@ var _ = require('underscore')._,
     cookies = require('cookies'),
     env = require('env'),
     stylize = require('colors').stylize,
+    querystring = require('querystring'),
     wsutil = require('wsutil');
 
 var window = env.window;
@@ -27,7 +28,7 @@ var WsHttp = function($_, web_repl, webshellVersion) {
   this.$_ = $_;
   this.web_repl = web_repl;
   this.webshellVersion = webshellVersion;
-  this.$_.pendingRequests = [];
+  this.$_.pendingRequests = {_count: 0};
   this.$_.enqueuedRequests = [];
   this.requestSeq = 0;
   if (undefined === this.$_.requestConcurrency) {
@@ -209,8 +210,10 @@ WsHttp.prototype = {
         } else {
           self.web_repl.displayPromptOnDrain = true;
         }
+
         // remove this client from pending requests
-        self.$_.pendingRequests = _.without(self.$_.pendingRequests, response.client.seq);
+        delete self.$_.pendingRequests[response.client.seq];
+        self.$_.pendingRequests._count--;
 
         // check to see if there are enqueued requests
         if (self.$_.enqueuedRequests.length > 0) {
@@ -219,7 +222,8 @@ WsHttp.prototype = {
             stylize(request.result.verb, 'blue') + ' ' + request.result.url
             + stylize(' #' + request.seq + ' (dequeued)', 'grey')
           );
-          self.$_.pendingRequests.push(request.seq);
+          self.$_.pendingRequests[request.seq] = 1;
+          self.$_.pendingRequests._count++;
           request.end();
 
         }
@@ -230,8 +234,9 @@ WsHttp.prototype = {
     client.seq = this.requestSeq++;
     request.seq = client.seq;
     request.result = result;
-    if (this.$_.pendingRequests.length < this.$_.requestConcurrency) {
-      this.$_.pendingRequests.push(client.seq);
+    if (this.$_.pendingRequests._count < this.$_.requestConcurrency) {
+      this.$_.pendingRequests[client.seq] = 1;
+      this.$_.pendingRequests._count++;
       request.end();
       this.web_repl.outputAndPrompt(
         stylize(result.verb, 'blue') + ' ' + result.url

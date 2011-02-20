@@ -8,11 +8,12 @@ repl.REPLServer.prototype.displayPrompt = function () {
 };
 
 repl.REPLServer.prototype.outputAndPrompt = function (msg) {
-  var bufferOk = this.rli.outputWrite(
+  this.rli.outputWrite(
       '\x1b[1K'
       + '\x1b[' + (this.rli._promptLength + this.rli.line.length) + 'D'
       + msg
       + "\n");
+  var bufferOk = this.rli.cursorToEnd();
   if (bufferOk) {
     this.displayPrompt();
   } else {

@@ -1,19 +1,24 @@
 var readline = require('readline'),
   exec = require('child_process').exec,
+  tty = require('tty'),
   fs = require('fs');
-
-var stdio = process.binding('stdio');
 
 module.exports = readline;
 
+var stdio = process.binding('stdio');
+var getCols = function() {
+  return tty.getWindowSize(stdio)[1];
+};
+
 readline.Interface.prototype.cursorToEnd = function() {
   // place the cursor at the end of the current line
-  this.output.write(
+  var bufferOk = this.output.write(
     '\x1b[0G\x1b['
     + (this._promptLength + this.line.length)
     + 'C'
   );
   this.cursor = this.line.length;
+  return bufferOk;
 }
 
 readline.Interface.prototype.completeHistory = function() {
@@ -72,51 +77,58 @@ readline.Interface.prototype.outputWrite = function (msg) {
 
 readline.Interface.prototype.node_ttyWrite = readline.Interface.prototype._ttyWrite;
 
-readline.Interface.prototype._ttyWrite = function (b) {
+readline.Interface.prototype._ttyWrite = function (s, key) {
   this._hardClosed = false;
-  switch (b[0]) {
+  key = key || {};
 
-    case 3: // control-c
-      this.output.write("^C\r\n");
-      if (this.cursor === 0 && this.line.length === 0) { // only at start
-        this._hardClosed = true;
-      } else {
-        this.line = '';
-        this.cursor = 0;
+  if (key.ctrl) {
+    switch (key.name) {
+      case 'c': // control-c
+        this.output.write("^C\r\n");
+        if (this.cursor === 0 && this.line.length === 0) { // only at start
+          this._hardClosed = true;
+        } else {
+          this.line = '';
+          this.cursor = 0;
+          this._refreshLine();
+          return;
+        }
+        break;
+
+      case 'd': // control-d, delete right or EOF
+        if (this.cursor === 0 && this.line.length === 0) { // only at start
+          this.output.write("^D\r\n");
+        }
+        break;
+
+      case 'l': // CTRL-L
+        // clear screen
+        this.output.write('\x1b[2J');
+        this.output.write('\x1b[0;0H');
         this._refreshLine();
         return;
-      }
-      break;
+        break;
+    }
+  } else {
+    switch (key.name) {
+      case 'enter': // enter
+        this._prevLineParams = null; // reset prevLineParams
+        // write the rest of the current line (this ensures that the cursor is at
+        // the end of the current command)
+        this.output.write(this.line.slice(this.cursor));
+        // no return; pass through to normal "enter" handler
+        break;
+    }
+  }
 
-    case 4: // control-d, delete right or EOF
-      if (this.cursor === 0 && this.line.length === 0) { // only at start
-        this.output.write("^D\r\n");
-      }
-      break;
-
-    case 12: // CTRL-L
-      // clear screen
-      this.output.write('\x1b[2J');
-      this.output.write('\x1b[0;0H');
-      this._refreshLine();
-      return;
-      break;
-
-    case 13: // enter
-      this._prevLineParams = null; // reset prevLineParams
-      // write the rest of the current line (this ensures that the cursor is at
-      // the end of the current command)
-      this.output.write(this.line.slice(this.cursor));
-      // no return; pass through to normal "enter" handler
-      break;
-
+/*
+// THIS BROKE ON NODE 0.3 (0.4); it might no longer be necessary
     case 27: // escape sequence
       if (b[1] === 91 && b[2] === 67) { // right arrow
         if (this.cursor != this.line.length) {
           this.cursor++;
-          var cols = stdio.getColumns();
           // if we're at the first character of a new line:
-          if (((this.cursor + this._promptLength) % cols) == 0) {
+          if (((this.cursor + this._promptLength) % getCols()) == 0) {
             // cursor to the left, down one line
             this.output.write('\x1b[0G\x1b[1B');
           } else {
@@ -137,8 +149,9 @@ readline.Interface.prototype._ttyWrite = function (b) {
       break;
 
   }
+*/
   // unhandled, so let the original method handle it
-  this.node_ttyWrite(b);
+  this.node_ttyWrite(s, key);
 }
 
 // overloading the _addHistory method to up the history size to 1000
@@ -160,9 +173,8 @@ readline.Interface.prototype._addHistory = function () {
 
 readline.Interface.prototype._renegotiatePrevLineParams = function () {
   if (this._prevLineParams) {
-    var cols = stdio.getColumns();
-    this._prevLineParams.cursorPos = (this._promptLength + this.cursor) % cols;
-    this._prevLineParams.cursorRow = Math.floor((this._promptLength + this.cursor) / cols);
+    this._prevLineParams.cursorPos = (this._promptLength + this.cursor) % getCols();
+    this._prevLineParams.cursorRow = Math.floor((this._promptLength + this.cursor) / getCols());
   }
 };
 
@@ -172,11 +184,10 @@ readline.Interface.prototype._refreshLine  = function () {
 
   stdio.setRawMode(true);
 
-  var cols = stdio.getColumns();
   var lineLen = this.line.length + this._promptLength;
-  var rows = Math.floor(lineLen / cols);
-  var cursorPos = (this._promptLength + this.cursor) % cols;
-  var cursorRow = Math.floor((this.cursor + this._promptLength) / cols);
+  var rows = Math.floor(lineLen / getCols());
+  var cursorPos = (this._promptLength + this.cursor) % getCols();
+  var cursorRow = Math.floor((this.cursor + this._promptLength) / getCols());
   var cursorDiff = rows - cursorRow;
 
   // Cursor to left edge.

@@ -222,7 +222,7 @@ WsHttp.prototype = {
             stylize(request.result.verb, 'blue') + ' ' + request.result.url
             + stylize(' #' + request.seq + ' (dequeued)', 'grey')
           );
-          self.$_.pendingRequests[request.seq] = 1;
+          self.$_.pendingRequests[request.seq] = request.result;
           self.$_.pendingRequests._count++;
           request.end();
 
@@ -235,7 +235,7 @@ WsHttp.prototype = {
     request.seq = client.seq;
     request.result = result;
     if (this.$_.pendingRequests._count < this.$_.requestConcurrency) {
-      this.$_.pendingRequests[client.seq] = 1;
+      this.$_.pendingRequests[client.seq] = result;
       this.$_.pendingRequests._count++;
       request.end();
       this.web_repl.outputAndPrompt(

@@ -76,7 +76,7 @@ WebShell.Shell = function(stream) {
   web_repl.rli.history = wsrc.get().history;
 
   // trap tab key:
-  web_repl.stream.on('data', function (chunk) {
+  web_repl.inputStream.on('data', function (chunk) {
     if (web_repl.rli.cursor != web_repl.rli.line.length) {
       // cursor is not at the end of the line
       return true;

@@ -155,9 +155,8 @@ WsHttp.prototype = {
     var self = this;
     request.on('response', function (response) {
       if (self.$_.printStatus) {
-        self.web_repl.outputAndPrompt(
-          wsutil.formatStatus(response.statusCode, u, response.client.seq)
-        );
+        self.web_repl.outputStream.write(wsutil.formatStatus(response.statusCode, u, response.client.seq));
+        self.web_repl.displayPrompt();
       }
       self.$_.status = response.statusCode;
 
@@ -238,9 +237,8 @@ WsHttp.prototype = {
       this.$_.pendingRequests[client.seq] = result;
       this.$_.pendingRequests._count++;
       request.end();
-      this.web_repl.outputAndPrompt(
-        stylize(result.verb, 'blue') + ' ' + result.url
-      );
+      this.web_repl.outputStream.write(stylize(result.verb, 'blue') + ' ' + result.url);
+      this.web_repl.displayPrompt();
     } else {
       this.$_.enqueuedRequests.push(request);
       this.web_repl.outputAndPrompt(

@@ -5,7 +5,7 @@
   "author": "Evan Haas <evan@fictivekin.com>, Sean Coates <sean@fictivekin.com>",
   "contributors": [
     { "name": "Evan Haas", "email": "evan@fictivekin.com" },
-    { "name": "Sean Coates", "email": "sean@fictivekin.com" },
+    { "name": "Sean Coates", "email": "sean@fictivekin.com" }
   ],
   "keywords": ["shell", "http", "utility", "debug"],
   "repository": {

@@ -9,6 +9,10 @@ tasty morsels.
 (NOTE: a recent version of Node.js (>=0.1.104) is required (for improved
 readline-like behaviour).)
 
+To install, use npm:
+
+	npm install https://github.com/fictivekin/webshell/tarball/master
+
 Simple HTTP requests
 --------------------
 Webshell supports all of the HTTP verbs in a simple to use syntax. The

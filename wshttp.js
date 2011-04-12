@@ -155,7 +155,12 @@ WsHttp.prototype = {
     var self = this;
     request.on('response', function (response) {
       if (self.$_.printStatus) {
-        self.web_repl.outputStream.write(wsutil.formatStatus(response.statusCode, u, response.client.seq));
+        self.web_repl.outputStream.write(
+            '\x1b[1K'
+            + '\x1b[' + (self.web_repl.rli._promptLength + self.web_repl.rli.line.length) + 'D'
+            + wsutil.formatStatus(response.statusCode, u, response.client.seq)
+            + '\x1b[B'
+        );
         self.web_repl.displayPrompt();
       }
       self.$_.status = response.statusCode;

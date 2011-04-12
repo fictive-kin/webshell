@@ -52,7 +52,7 @@ WsHttp.prototype = {
     };
 
     if (url.auth) {
-      headers['authorization'] = 'Basic ' + WebShell.Util.base64Encode(url.auth);
+      headers['authorization'] = 'Basic ' + wsutil.base64Encode(url.auth);
     }
 
     if (this.$_.useCookies) {

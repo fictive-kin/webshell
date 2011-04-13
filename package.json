@@ -1,18 +1,20 @@
 {
   "name": "webshell",
   "description": "A console-based web client utility.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": "Evan Haas <evan@fictivekin.com>, Sean Coates <sean@fictivekin.com>",
   "contributors": [
     { "name": "Evan Haas", "email": "evan@fictivekin.com" },
-    { "name": "Sean Coates", "email": "sean@fictivekin.com" }
+    { "name": "Sean Coates", "email": "sean@fictivekin.com" },
+    { "name": "Joël Perras" },
+    { "name": "Mark Cahill" }
   ],
   "keywords": ["shell", "http", "utility", "debug"],
   "repository": {
     "type": "git",
     "url": "https://github.com/fictivekin/webshell.git"
   },
-  "engines": { "node": ">=0.2.5" },
+  "engines": { "node": ">=0.4.0" },
   "dependencies": { "hashlib": ">=1.0.0" },
   "bin": { "webshell": "./shell.js" }
 }

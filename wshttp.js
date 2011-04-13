@@ -1,3 +1,9 @@
+// Note: the Digest code in this file was mostly lifted from:
+//   https://github.com/codehero/node-http-digest
+// This is clearly not GPL code, but there's no other license attached.
+// We assume that this is fair game, but please let us know if this is not the
+// case.
+
 var _ = require('underscore')._,
     http = require('http'),
     https = require('https'),
@@ -6,9 +12,31 @@ var _ = require('underscore')._,
     env = require('env'),
     stylize = require('colors').stylize,
     querystring = require('querystring'),
+    hashlib = require('hashlib'),
     wsutil = require('wsutil');
 
 var window = env.window;
+
+var digestPersistent = {
+  // FIXME This is bad, should use a random cnonce!
+  cnonce: "cdb0e64d1ded02dd",
+  qop: null,
+  opaque: null,
+  // Have not yet determined realm
+  HA1: null,
+  nonceCount: 0,
+  nonce: null,
+  realm: null,
+  stale: null
+};
+var digestPersistentCopy = _.clone(digestPersistent);
+var digestWwwAuthMap = {
+  "realm" : "realm=\"",
+  "nonce" : "nonce=\"",
+  "qop" : "qop=\"",
+  "opaque" : "opaque=\"",
+  "stale" : "stale="
+};
 
 function ResultHolder(verb, url) {
   this.verb = verb;
@@ -62,7 +90,7 @@ WsHttp.prototype = {
     return headers;
   },
 
-  doReq: function (verb, urlStr, cb, doAuth) {
+  doReq: function (verb, urlStr, cb, doAuth, prevResponse) {
     result = new ResultHolder(verb, urlStr);
 
     var u = wsutil.parseURL(urlStr, true, this.$_.previousUrl);
@@ -91,7 +119,8 @@ WsHttp.prototype = {
             + wsutil.formatStatus(
                 response.statusCode,
                 u,
-                response.client._httpMessage.seq
+                response.client._httpMessage.seq,
+                undefined === self.$_.auth ? null : self.$_.auth.rerequested
               )
         );
       }
@@ -119,7 +148,7 @@ WsHttp.prototype = {
         } else if ((undefined === doAuth) && response.statusCode == 401 && self.$_.auth) {
           if (undefined !== response.headers['www-authenticate']) {
             var authType = response.headers['www-authenticate'].split(' ')[0].toLowerCase();
-            self.doReq(verb, urlStr, cb, authType);
+            self.doReq(verb, urlStr, cb, authType, _.clone(response));
           }
         }
 
@@ -223,6 +252,8 @@ WsHttp.prototype = {
       doAuth = this.$_.auth.rerequested;
     }
 
+    var reqPath = u.pathname + (undefined === u.search ? '' : u.search);
+
     if (doAuth) {
       u.auth = this.$_.auth.user + ':' + this.$_.auth.pass;
       switch (doAuth) {
@@ -231,8 +262,8 @@ WsHttp.prototype = {
           this.$_.auth.rerequested = doAuth;
           break;
         case 'digest':
-          console.log(stylize('TODO: digest', 'red'));
-          return;
+          this.makeDigestHeaders(verb, reqPath, this.$_.auth.user, this.$_.auth.pass, prevResponse, headers);
+          this.$_.auth.rerequested = doAuth;
           break;
         default:
           console.log(stylize('Unable to handle www-authenticate type: ' + doAuth, 'red'));
@@ -258,7 +289,7 @@ WsHttp.prototype = {
           host: u.hostname,
           port: port,
           method: verb,
-          path: u.pathname + (undefined === u.search ? '' : u.search),
+          path: reqPath,
           headers: headers
         },
         responseHandler
@@ -336,15 +367,118 @@ WsHttp.prototype = {
         }
       }
       if (changed) {
+        digestPersistent = _.clone(digestPersistentCopy); // reset digest
         this.$_.auth.rerequested = false;
         console.log(stylize('Changed $_.auth to ' + this.$_.auth.user + ':' + this.$_.auth.pass, 'blue'));
       }
     } else {
       if (changed) {
+        digestPersistent = _.clone(digestPersistentCopy); // reset digest
         console.log(stylize('Unset $_.auth', 'blue'));
       }
     }
+  },
+
+  makeDigestHeaders: function (method, path, user, pass, response, headers) {
+    ++digestPersistent.nonceCount;
+    if (digestPersistent.HA1) {
+      var HA2 = (method + ":" + path);
+      // FIXME Handle "auth-int" case!
+      //if(self.qop == "auth" || self.qop == "auth-int"){
+      //}
+
+      // Calculate 8 digit hex nc value.
+      var nc = digestPersistent.nonceCount.toString(16);
+      while (nc.length < 8) {
+        nc = "0" + nc;
+      }
+
+      HA2 = hashlib.md5(HA2);
+
+      /* Calculate middle portion of undigested 'response' */
+      var middle = digestPersistent.nonce;
+      if (digestPersistent.qop == "auth" || digestPersistent.qop == "auth-int") {
+        middle += ":" + nc + ":" + digestPersistent.cnonce + ":" + digestPersistent.qop;
+      }
+
+      /* Digest the response. */
+      var response = digestPersistent.HA1 + ":" + middle + ":" + HA2;
+      response = hashlib.md5(response);
+
+      /* Assemble the header value. */
+      var hdrVal = "Digest username=\"" + user
+        + "\", realm=\"" + digestPersistent.realm
+        + "\", nonce=\"" + digestPersistent.nonce
+        + "\", uri=\"" + path + "\"";
+
+      if (digestPersistent.qop) {
+        hdrVal += ", qop=" + digestPersistent.qop
+          + ", nc=" + nc
+          + ", cnonce=\"" + digestPersistent.cnonce + '"';
+      }
+
+      hdrVal += ", response=\"" + response + '"';
+      if (digestPersistent.opaque) {
+        hdrVal += ", opaque=\"" + digestPersistent.opaque + '"';
+      }
+
+      headers["authorization"] = hdrVal;
+      return;
+    }
+
+    // HA1 is not yet set, so determine it:
+    var a = response.headers["www-authenticate"];
+    if (a) {
+      /* Update server values. */
+      for (v in digestWwwAuthMap) {
+        var idx = a.indexOf(digestWwwAuthMap[v]);
+        if (idx != -1) {
+          idx += digestWwwAuthMap[v].length;
+          var e = (v != "stale") ? a.indexOf('"', idx) : a.indexOf(',', idx);
+
+          // Correct for the odd ball stale (has no quotes..)
+          // FIXME handle badly formatted string?
+          if (-1 == e && "stale" == v) {
+            e = a.length;
+          }
+
+          digestPersistent[v] = a.substring(idx, e);
+        }
+      }
+    } else {
+      // FIXME Server is not using auth digest?
+    }
+
+    // Ignore realm
+    //if(self.expectedRealm && self.realm != self.expectedRealm){
+      // FIXME realm mismatch!
+    //}
+
+    // If have previous auth info, then try to revalidate.
+    if (digestPersistent.HA1) {
+      // If did not recv stale, then have bad credentials.
+      if (null == digestPersistent.stale) {
+        // FIXME some kind of exception?
+      }
+    } else {
+      // Initialize HA1
+      digestPersistent.HA1 = user + ":" + digestPersistent.realm + ":" + pass;
+      digestPersistent.HA1 = hashlib.md5(digestPersistent.HA1);
+    }
+
+    // HACK FIXME Just dropping back to auth!
+    if (digestPersistent.qop) {
+      digestPersistent.qop = "auth";
+    }
+
+    // Start with 0 nonceCount
+    digestPersistent.nonceCount = -1;
+
+    // call self now that we have HA1 set up
+    return this.makeDigestHeaders(method, path, user, pass, response, headers);
   }
+
+
 };
 
 exports.WsHttp = WsHttp;

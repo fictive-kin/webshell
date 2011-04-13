@@ -62,9 +62,12 @@ exports.responsePrinter = function($_, response) {
   return bufferOk;
 };
 
-exports.formatStatus = function(status, url, seq) {
+exports.formatStatus = function(status, url, seq, auth) {
   var url = exports.formatUrl(url, true);
   var msg = "HTTP " + status + " " + stylize(url, 'white') + stylize(' #' + seq, 'grey');
+  if (auth) {
+    msg += stylize(' (' + auth + ')', 'grey');
+  }
   if (exports.httpSuccess(status)) {
     return stylize(msg, 'green');
   } else if (exports.httpRedirection(status)) {

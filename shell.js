@@ -52,6 +52,8 @@ var verbs = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD', 'TRACE', 'CONNEC
 WebShell.Shell = function(stream) {
   var prevU;
   wsrc.loadContext('_previous', $_, false, true);
+  // remove previous auth session:
+  delete($_.auth);
 
   var getContextsCompletion = function (cmd) {
     var completion = [];

@@ -7,13 +7,10 @@ var _ = require('underscore')._,
     https = require('https'),
     url = require('url'),
     cookies = require('cookies'),
-    env = require('env'),
     stylize = require('colors').stylize,
     querystring = require('querystring'),
     hashlib = require('hashlib'),
     wsutil = require('wsutil');
-
-var window = env.window;
 
 var digestPersistent = {
   // FIXME This is bad, should use a random cnonce!
@@ -152,20 +149,6 @@ WsHttp.prototype = {
 
         if (self.$_.printResponse) {
           bufferOk = wsutil.responsePrinter(self.$_, response);
-        }
-
-        if (self.$_.useJquery && undefined !== self.$_.headers['content-type'] && _.include(xmlHeaders, self.$_.headers['content-type'].split('; ')[0])) {
-          self.$_.document = new env.DOMDocument(body);
-          window.document = self.$_.document;
-
-          self.web_repl.context.$ = function(selector, context) {
-            var doSetup = !!env.window.document;
-            env.window.document = self.$_.document;
-            if (doSetup) {
-              jquery.setup(env.window);
-            }
-            return env.window.jQuery(selector, context);
-          };
         }
 
         _.extend(result, {raw: self.$_.raw, headers: self.$_.headers, statusCode: self.$_.status, json: self.$_.json});

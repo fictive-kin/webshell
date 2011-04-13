@@ -144,17 +144,6 @@ WebShell.Shell.prototype = {
   }
 };
 
-function checkVersion() {
-  var matchInfo = process.version.match(/(\d*)\.(\d*)\.(\d*)/);
-  var major = parseInt(matchInfo[1], 10);
-  var minor = parseInt(matchInfo[2], 10);
-  var rev = parseInt(matchInfo[3], 10);
-  if (major === 0 && (minor < 3 || (minor === 3 && rev < 2))) {
-    console.log(stylize("Webshell may not work with this version of node, consider upgrading\n", 'yellow'));
-  }
-}
-
-checkVersion();
 var shell = new WebShell.Shell;
 
 process.on('uncaughtException', function (err) {

@@ -13,6 +13,6 @@
     "url": "https://github.com/fictivekin/webshell.git"
   },
   "engines": { "node": ">=0.2.5" },
-  "dependencies": { "libxmljs": ">=0.4.0-28", "hashlib": ">=1.0.0" },
+  "dependencies": { "hashlib": ">=1.0.0" },
   "bin": { "webshell": "./shell.js" }
 }

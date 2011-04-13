@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 require.paths.unshift(__dirname + '/deps');
-var webshellVersion = '0.2';
+var webshellVersion = '0.3-dev';
 
 require.paths.unshift(__dirname);
 var WebShell = {

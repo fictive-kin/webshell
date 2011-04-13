@@ -1,8 +1,6 @@
 // Note: the Digest code in this file was mostly lifted from:
 //   https://github.com/codehero/node-http-digest
-// This is clearly not GPL code, but there's no other license attached.
-// We assume that this is fair game, but please let us know if this is not the
-// case.
+// "node-http-digest is in the public domain."
 
 var _ = require('underscore')._,
     http = require('http'),

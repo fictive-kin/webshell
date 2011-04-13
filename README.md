@@ -315,3 +315,9 @@ request is complete.
     HTTP 404 http://twitter.com/statuses/user_timeline/userwhodoesntexist.json
     http://twitter.com > 
 
+Contributors
+------------
+Evan Haas
+Sean Coates
+Joël Perras
+Mark Cahill

@@ -1,5 +1,7 @@
 var _ = require('underscore')._,
     http = require('http'),
+    https = require('https'),
+    url = require('url'),
     cookies = require('cookies'),
     env = require('env'),
     stylize = require('colors').stylize,
@@ -51,10 +53,6 @@ WsHttp.prototype = {
       'accept': 'application/json, */*'
     };
 
-    if (url.auth) {
-      headers['authorization'] = 'Basic ' + wsutil.base64Encode(url.auth);
-    }
-
     if (this.$_.useCookies) {
       var cookie = cookies.headerFor(url);
       if (cookie) {
@@ -64,12 +62,11 @@ WsHttp.prototype = {
     return headers;
   },
 
-  doReq: function (verb, urlStr, cb) {
+  doReq: function (verb, urlStr, cb, doAuth) {
     result = new ResultHolder(verb, urlStr);
 
     var u = wsutil.parseURL(urlStr, true, this.$_.previousUrl);
-    var prevU = this.$_.previousUrl ? wsutil.parseURL(this.$_.previousUrl, true) : undefined;
-    var client = http.createClient(u.port, u.hostname, u.protocol === 'https:');
+    var client;
     var xmlHeaders = ['text/html', 'text/xml', 'application/xml', 'application/rss+xml', 'application/rdf+xml', 'application/atom+xml'];
     var baseHeaders = _.clone(this.$_.requestHeaders);
     var lowerHeaders = {};
@@ -80,88 +77,23 @@ WsHttp.prototype = {
     delete baseHeaders.host; // provided by makeHeaders()
     delete baseHeaders.cookie; // provided by makeHeaders()
 
-    // check for prev auth
-    if (!u.auth && prevU && prevU.auth) {
-      if ((prevU.hostname == u.hostname)) {
-        u.auth = prevU.auth; // re-use previous auth
-      } else {
-        delete baseHeaders.authorization; // different hostname = delete auth
-      }
-    }
-
     this.$_.previousVerb = verb;
     this.$_.previousUrl = wsutil.formatUrl(u, true, true);
 
     var content = null;
     var headers = this.makeHeaders(u, this.$_);
-
-    // merge in $_.requestHeaders
-    if (typeof this.$_.requestHeaders != 'object') {
-        // something's not right here, so reset requestHeaders
-        // note: setting $_.requestHeaders to {} is also a good way for users
-        //       to reset things like the Accept header
-        this.$_.requestHeaders = {};
-    }
-
-    _.each(baseHeaders, function(v, k) {
-      // these are provided by makeHeaders()
-      headers[k] = v;
-    });
-
-    switch (verb) {
-      case 'POST':
-        if (typeof this.$_.requestData == "object") {
-          content = querystring.stringify(this.$_.requestData);
-          headers['content-type'] = 'application/x-www-form-urlencoded';
-        } else {
-          if (!headers['content-type']) {
-            headers['content-type'] = 'application/x-www-form-urlencoded';
-          }
-          content = this.$_.requestData;
-        }
-        break;
-      case 'PUT':
-        if (typeof this.$_.requestData !== 'string') {
-          console.log(stylize("$_.requestData must be a string", "red"));
-          this.web_repl.displayPrompt();
-          return false;
-        }
-        content = this.$_.requestData;
-        if (!headers['content-type']) {
-          headers['content-type'] = 'application/octet-stream';
-        }
-        break;
-    }
-    var path = u.pathname;
-    if (u.search) {
-      path += u.search;
-    }
-    if (content) {
-      headers['content-length'] = content.length;
-    } else {
-      // no content = no content-length header necessary
-      delete headers['content-length'];
-    }
-
-    // set prompt
-    this.web_repl.prompt = wsutil.formatUrl(u, false) + ' > ';
-
-    var request = client.request(verb, path, headers);
-    if (content) {
-      request.write(content);
-    }
-
-    this.$_.requestHeaders = headers;
     var self = this;
-    request.on('response', function (response) {
+    var responseHandler = function (response) {
       if (self.$_.printStatus) {
-        self.web_repl.outputStream.write(
-            '\x1b[1K'
-            + '\x1b[' + (self.web_repl.rli._promptLength + self.web_repl.rli.line.length) + 'D'
-            + wsutil.formatStatus(response.statusCode, u, response.client.seq)
-            + '\x1b[B'
+        console.log(
+            '\x1b[1K' // erase to start of line
+            + '\x1b[' + (self.web_repl.rli._promptLength + self.web_repl.rli.line.length) + 'D' // cursor to start of line
+            + wsutil.formatStatus(
+                response.statusCode,
+                u,
+                response.client._httpMessage.seq
+              )
         );
-        self.web_repl.displayPrompt();
       }
       self.$_.status = response.statusCode;
 
@@ -184,6 +116,11 @@ WsHttp.prototype = {
         delete self.$_['json'];
         if (response.statusCode >= 200 && response.statusCode < 300 && _.isJSON(self.$_.headers)) {
           self.$_.json = JSON.parse(body);
+        } else if ((undefined === doAuth) && response.statusCode == 401 && self.$_.auth) {
+          if (undefined !== response.headers['www-authenticate']) {
+            var authType = response.headers['www-authenticate'].split(' ')[0].toLowerCase();
+            self.doReq(verb, urlStr, cb, authType);
+          }
         }
 
         if (self.$_.printResponse) {
@@ -232,7 +169,109 @@ WsHttp.prototype = {
 
         }
       });
+    };
+
+
+    // merge in $_.requestHeaders
+    if (typeof this.$_.requestHeaders != 'object') {
+        // something's not right here, so reset requestHeaders
+        // note: setting $_.requestHeaders to {} is also a good way for users
+        //       to reset things like the Accept header
+        this.$_.requestHeaders = {};
+    }
+
+    _.each(baseHeaders, function(v, k) {
+      // these are provided by makeHeaders()
+      headers[k] = v;
     });
+
+    switch (verb) {
+      case 'POST':
+        if (typeof this.$_.requestData == "object") {
+          content = querystring.stringify(this.$_.requestData);
+          headers['content-type'] = 'application/x-www-form-urlencoded';
+        } else {
+          if (!headers['content-type']) {
+            headers['content-type'] = 'application/x-www-form-urlencoded';
+          }
+          content = this.$_.requestData;
+        }
+        break;
+      case 'PUT':
+        if (typeof this.$_.requestData !== 'string') {
+          console.log(stylize("$_.requestData must be a string", "red"));
+          this.web_repl.displayPrompt();
+          return false;
+        }
+        content = this.$_.requestData;
+        if (!headers['content-type']) {
+          headers['content-type'] = 'application/octet-stream';
+        }
+        break;
+    }
+    if (content) {
+      headers['content-length'] = content.length;
+    } else {
+      // no content = no content-length header necessary
+      delete headers['content-length'];
+    }
+
+    this.calculateAuth(u);
+    delete(u.auth);
+    delete(headers.authorization);
+    if (!doAuth && undefined !== this.$_.auth && (this.$_.auth.rerequested)) {
+      doAuth = this.$_.auth.rerequested;
+    }
+
+    if (doAuth) {
+      u.auth = this.$_.auth.user + ':' + this.$_.auth.pass;
+      switch (doAuth) {
+        case 'basic':
+          headers['authorization'] = 'Basic ' + wsutil.base64Encode(u.auth);
+          this.$_.auth.rerequested = doAuth;
+          break;
+        case 'digest':
+          console.log(stylize('TODO: digest', 'red'));
+          return;
+          break;
+        default:
+          console.log(stylize('Unable to handle www-authenticate type: ' + doAuth, 'red'));
+          return;
+      }
+    }
+    var port;
+    switch (u.protocol) {
+      case 'http:':
+        client = http;
+        port = (undefined === u.port) ? 80 : u.port;
+        break;
+      case 'https:':
+        client = https;
+        port = (undefined === u.port) ? 443 : u.port;
+        break;
+      default:
+        console.log(stylize("Unsupported protocol: " + u.protocol, 'red'));
+        return;
+    }
+    var request = client.request(
+        {
+          host: u.hostname,
+          port: port,
+          method: verb,
+          path: u.pathname + (undefined === u.search ? '' : u.search),
+          headers: headers
+        },
+        responseHandler
+    );
+
+    // set prompt
+    this.web_repl.prompt = wsutil.formatUrl(u, false) + ' > ';
+
+    if (content) {
+      request.write(content);
+    }
+
+    this.$_.requestHeaders = headers;
 
     // set client to a unique ID so it can be tracked in the response
     client.seq = this.requestSeq++;
@@ -259,6 +298,51 @@ WsHttp.prototype = {
       this.doReq(this.$_.previousVerb, location, null);
     } else {
       console.log(stylize("No previous request!", 'red'));
+    }
+  },
+
+  calculateAuth: function (u) {
+    var currentHost = u.protocol + (u.slashes ? '//' : '') + u.hostname + ":" + u.port;
+    var changed = false;
+    if (
+      undefined !== this.$_.auth
+      && undefined !== this.$_.auth.host
+      && this.$_.auth.host !== currentHost
+    ) {
+      delete(this.$_.auth);
+      changed = true;
+    }
+    if (u.auth) {
+      var auth = u.auth.split(':');
+      if (undefined === this.$_.auth) {
+        this.$_.auth = {
+          user: auth[0],
+          host: currentHost,
+        };
+        if (undefined !== auth[1]) {
+          this.$_.auth.pass = auth[1];
+        }
+        changed = true;
+      } else {
+        if (undefined === this.$_.auth.user || this.$_.auth.user !== auth[0]) {
+          changed = true;
+          this.$_.auth.user = auth[0];
+        }
+        if (undefined !== auth[1]) {
+          if (this.$_.auth.pass !== auth[1]) {
+            changed = true;
+            this.$_.auth.pass = auth[1];
+          }
+        }
+      }
+      if (changed) {
+        this.$_.auth.rerequested = false;
+        console.log(stylize('Changed $_.auth to ' + this.$_.auth.user + ':' + this.$_.auth.pass, 'blue'));
+      }
+    } else {
+      if (changed) {
+        console.log(stylize('Unset $_.auth', 'blue'));
+      }
     }
   }
 };

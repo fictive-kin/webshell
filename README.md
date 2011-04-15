@@ -19,6 +19,8 @@ To install, use [npm](http://npmjs.org/):
 
 	npm install webshell
 
+This will install Hashlib as well, if necessary.
+
 Simple HTTP requests
 --------------------
 Webshell supports all of the HTTP verbs in a simple to use syntax. The

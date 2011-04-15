@@ -317,7 +317,7 @@ request is complete.
 
 Contributors
 ------------
-Evan Haas
-Sean Coates
-Joël Perras
-Mark Cahill
+- Evan Haas
+- Sean Coates
+- Joël Perras
+- Mark Cahill

@@ -6,12 +6,18 @@ by Evan Haas and Sean Coates
 Includes tab completion, history, context persistence, cookies and other
 tasty morsels.
 
-(NOTE: a recent version of Node.js (>=0.1.104) is required (for improved
-readline-like behaviour).)
+Requirements
+----------------------------
 
-To install, use npm:
+* [Node.js](http://nodejs.org/) >=0.4.0
+* [Hashlib](https://github.com/brainfucker/hashlib) >=1.0.0
 
-	npm install https://github.com/fictivekin/webshell/tarball/master
+Installation
+----------------------------
+
+To install, use [npm](http://npmjs.org/):
+
+	npm install webshell
 
 Simple HTTP requests
 --------------------

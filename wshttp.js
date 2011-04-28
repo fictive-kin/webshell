@@ -26,10 +26,10 @@ var digestPersistent = {
 };
 var digestPersistentCopy = _.clone(digestPersistent);
 var digestWwwAuthMap = {
-  "realm" : "realm=\"",
-  "nonce" : "nonce=\"",
-  "qop" : "qop=\"",
-  "opaque" : "opaque=\"",
+  "realm" : "realm=",
+  "nonce" : "nonce=",
+  "qop" : "qop=",
+  "opaque" : "opaque=",
   "stale" : "stale="
 };
 
@@ -414,12 +414,16 @@ WsHttp.prototype = {
       for (v in digestWwwAuthMap) {
         var idx = a.indexOf(digestWwwAuthMap[v]);
         if (idx != -1) {
+          var isQuoted = false;
           idx += digestWwwAuthMap[v].length;
-          var e = (v != "stale") ? a.indexOf('"', idx) : a.indexOf(',', idx);
+          if (a.indexOf('"', idx) === idx) {
+              // skip initial quote
+              isQuoted = true;
+              ++idx;
+          }
+          var e = isQuoted ? a.indexOf('"', idx) : a.indexOf(',', idx);
 
-          // Correct for the odd ball stale (has no quotes..)
-          // FIXME handle badly formatted string?
-          if (-1 == e && "stale" == v) {
+          if (-1 == e && isQuoted) {
             e = a.length;
           }
 

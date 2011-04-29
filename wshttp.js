@@ -12,6 +12,7 @@ var _ = require('underscore')._,
     hashlib = require('hashlib'),
     wsutil = require('wsutil');
 
+var failCount = 0;
 var digestPersistent = {
   // FIXME This is bad, should use a random cnonce!
   cnonce: "cdb0e64d1ded02dd",
@@ -138,13 +139,26 @@ WsHttp.prototype = {
         self.$_.raw = body;
         delete self.$_['document'];
         delete self.$_['json'];
+        failCount++;
         if (response.statusCode >= 200 && response.statusCode < 300 && _.isJSON(self.$_.headers)) {
+          failCount = 0;
           self.$_.json = JSON.parse(body);
         } else if ((undefined === doAuth) && response.statusCode == 401 && self.$_.auth) {
+          // new auth
           if (undefined !== response.headers['www-authenticate']) {
             var authType = response.headers['www-authenticate'].split(' ')[0].toLowerCase();
             self.doReq(verb, urlStr, cb, authType, _.clone(response));
           }
+        } else if (failCount < 2 && response.statusCode == 401 && self.$_.auth && doAuth) {
+          // auth changed
+          digestPersistent.HA1 = null;
+          self.doReq(
+              verb,
+              urlStr,
+              cb,
+              response.headers['www-authenticate'].split(' ')[0].toLowerCase(),
+              _.clone(response)
+          );
         }
 
         if (self.$_.printResponse) {

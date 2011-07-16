@@ -240,11 +240,13 @@ WsHttp.prototype = {
       delete headers['content-length'];
     }
 
-    this.calculateAuth(u);
-    delete(u.auth);
-    delete(headers.authorization);
-    if (!doAuth && undefined !== this.$_.auth && (this.$_.auth.rerequested)) {
-      doAuth = this.$_.auth.rerequested;
+    if (!headers['authorization']) {
+      this.calculateAuth(u);
+      delete(u.auth);
+      delete(headers.authorization);
+      if (!doAuth && undefined !== this.$_.auth && (this.$_.auth.rerequested)) {
+        doAuth = this.$_.auth.rerequested;
+      }
     }
 
     var reqPath = u.pathname + (undefined === u.search ? '' : u.search);

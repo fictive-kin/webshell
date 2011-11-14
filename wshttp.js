@@ -8,7 +8,7 @@ var _ = require('underscore')._,
     url = require('url'),
     cookies = require('cookies'),
     stylize = require('colors').stylize,
-    querystring = require('querystring'),
+    querystring = require('qs'),
     hashlib = require('hashlib'),
     wsutil = require('wsutil');
 

@@ -25,7 +25,7 @@ repl.REPLServer.prototype.outputAndPrompt = function (msg) {
 // NOTE: .complete can be dumped if/when this is pulled to ryah/node:
 // http://github.com/scoates/node/commit/44e8ebeee95600d571e3d316db8df1147c4da828
 
-var Script = process.binding('evals').Script;
+var Script = process.binding('evals').NodeScript;
 var evalcx = Script.runInContext;
 
 /**

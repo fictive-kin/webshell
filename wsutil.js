@@ -1,11 +1,11 @@
 // vim: sw=2 ts=2 et
 var url = require('url'),
     util = require('util'),
-    stylize = require('colors').stylize,
+    stylize = require('./colors').stylize,
     querystring = require('querystring'),
     fs = require('fs'),
-    wsrc = require('wsrc'),
-    _ = require('underscore')._;
+    wsrc = require('./wsrc'),
+    _ = require('./underscore')._;
 
 exports.parseURL = function(urlStr, protocolHelp, previousUrl) {
   var u = url.parse(urlStr);

@@ -1,24 +1,22 @@
 #!/usr/bin/env node
-require.paths.unshift(__dirname + '/deps');
 var webshellVersion = '0.3-dev';
 
-require.paths.unshift(__dirname);
 var WebShell = {
   Util: {}
 };
 
 var util = require('util'),
     repl = require('repl'),
-    wsrepl = require('wsrepl'),
+    wsrepl = require('./wsrepl'),
     fs = require('fs'),
-    stylize = require('colors').stylize,
-    wsrc = require('wsrc'),
-    wsreadline = require('wsreadline'),
-    _ = require('underscore')._,
-    jquery = require('jquery'),
-    WsHttp = require('wshttp').WsHttp;
+    stylize = require('./colors').stylize,
+    wsrc = require('./wsrc'),
+    wsreadline = require('./wsreadline'),
+    _ = require('./underscore')._,
+    jquery = require('./jquery'),
+    WsHttp = require('./wshttp').WsHttp;
 
-_.extend(WebShell.Util, require('wsutil'));
+_.extend(WebShell.Util, require('./wsutil'));
 
 _.mixin({
   isJSON: function(headers) {
@@ -43,7 +41,7 @@ var $_ = {
   printResponse: true,
   postToRequestData: function (post) { return WebShell.Util.postToRequestData(this, post); },
   fileToRequestData: function (filename, encoding) { return WebShell.Util.fileToRequestData(this, filename, encoding); },
-  cookies: require('cookies'),
+  cookies: require('./cookies'),
   toolbox: {},
   evalFile: WebShell.Util.evalFile
 };

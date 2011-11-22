@@ -1,6 +1,6 @@
 var fs = require('fs'),
-    _ = require('underscore')._,
-    wsrc = require('wsrc');
+    _ = require('./underscore')._,
+    wsrc = require('./wsrc');
 
 var rc = wsrc.get();
 var cookieJar = rc.cookies || {};

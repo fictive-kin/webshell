@@ -5,9 +5,8 @@ var readline = require('readline'),
 
 module.exports = readline;
 
-var stdio = process.binding('stdio');
 var getCols = function() {
-  return tty.getWindowSize(stdio)[1];
+  return tty.getWindowSize(process.stdin);
 };
 
 readline.Interface.prototype.cursorToEnd = function() {
@@ -182,7 +181,7 @@ readline.Interface.prototype._prevLineParams = null;
 readline.Interface.prototype._refreshLine  = function () {
   if (this._closed) return;
 
-  stdio.setRawMode(true);
+  tty.setRawMode(true);
 
   var lineLen = this.line.length + this._promptLength;
   var rows = Math.floor(lineLen / getCols());

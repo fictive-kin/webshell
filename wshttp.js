@@ -2,15 +2,15 @@
 //   https://github.com/codehero/node-http-digest
 // "node-http-digest is in the public domain."
 
-var _ = require('underscore')._,
+var _ = require('./underscore')._,
     http = require('http'),
     https = require('https'),
     url = require('url'),
-    cookies = require('cookies'),
-    stylize = require('colors').stylize,
+    cookies = require('./cookies'),
+    stylize = require('./colors').stylize,
     querystring = require('qs'),
     hashlib = require('hashlib'),
-    wsutil = require('wsutil');
+    wsutil = require('./wsutil');
 
 var failCount = 0;
 var digestPersistent = {

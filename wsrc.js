@@ -1,7 +1,7 @@
 var fs = require('fs'),
-    stylize = require('colors').stylize,
-    wsutil = require('wsutil'),
-    _ = require('underscore')._;
+    stylize = require('./colors').stylize,
+    wsutil = require('./wsutil'),
+    _ = require('./underscore')._;
 
 var functionPrefix = '___WSFUNC___';
 

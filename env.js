@@ -6,12 +6,12 @@
 
 var http = require('http'),
     url = require('url'),
-    _ = require('underscore')._;
+    _ = require('./underscore')._;
 var libxml;
 try {
   libxml = require('libxmljs');
 } catch (e) {
-  var stylize = require('colors').stylize;
+  var stylize = require('./colors').stylize;
   console.log(stylize("Unable to load libxmljs.  jQuery won't work!\n", 'yellow'));
   exports.DOMDocument = function(x) { };
   exports.window = {};

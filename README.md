@@ -329,3 +329,6 @@ Contributors
 - Sean Coates
 - Joël Perras
 - Mark Cahill
+- Herman J. Radtke III
+- Michael C. Harris
+

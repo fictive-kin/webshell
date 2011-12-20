@@ -9,7 +9,7 @@ tasty morsels.
 Requirements
 ----------------------------
 
-* [Node.js](http://nodejs.org/) >=0.4.0
+* [Node.js](http://nodejs.org/) >=0.4.4
 * [Hashlib](https://github.com/brainfucker/hashlib) >=1.0.0
 
 Installation

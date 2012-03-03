@@ -10,7 +10,6 @@ Requirements
 ----------------------------
 
 * [Node.js](http://nodejs.org/) >=0.4.4
-* [Hashlib](https://github.com/brainfucker/hashlib) >=1.0.0
 
 Installation
 ----------------------------
@@ -18,8 +17,6 @@ Installation
 To install, use [npm](http://npmjs.org/):
 
 	npm install webshell
-
-This will install Hashlib as well, if necessary.
 
 Simple HTTP requests
 --------------------

@@ -9,7 +9,7 @@ var _ = require('./underscore')._,
     cookies = require('./cookies'),
     stylize = require('./colors').stylize,
     querystring = require('qs'),
-    hashlib = require('hashlib'),
+    crypto = require('crypto'),
     wsutil = require('./wsutil');
 
 var failCount = 0;
@@ -389,8 +389,8 @@ WsHttp.prototype = {
       while (nc.length < 8) {
         nc = "0" + nc;
       }
-
-      HA2 = hashlib.md5(HA2);
+        
+      HA2 = crypto.createHash('md5').update(HA2).digest('hex');
 
       /* Calculate middle portion of undigested 'response' */
       var middle = digestPersistent.nonce;
@@ -400,7 +400,7 @@ WsHttp.prototype = {
 
       /* Digest the response. */
       var response = digestPersistent.HA1 + ":" + middle + ":" + HA2;
-      response = hashlib.md5(response);
+      response = crypto.createHash('md5').update(response).digest('hex');
 
       /* Assemble the header value. */
       var hdrVal = "Digest username=\"" + user
@@ -464,7 +464,7 @@ WsHttp.prototype = {
     } else {
       // Initialize HA1
       digestPersistent.HA1 = user + ":" + digestPersistent.realm + ":" + pass;
-      digestPersistent.HA1 = hashlib.md5(digestPersistent.HA1);
+      digestPersistent.HA1 = crypto.createHash('md5').update(digestPersistent.HA1).digest('hex');
     }
 
     // HACK FIXME Just dropping back to auth!

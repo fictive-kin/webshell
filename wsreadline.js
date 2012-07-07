@@ -181,7 +181,7 @@ readline.Interface.prototype._prevLineParams = null;
 readline.Interface.prototype._refreshLine  = function () {
   if (this._closed) return;
 
-  tty.setRawMode(true);
+  process.stdin.setRawMode(true);
 
   var lineLen = this.line.length + this._promptLength;
   var rows = Math.floor(lineLen / getCols());
